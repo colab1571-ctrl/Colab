@@ -1,0 +1,46 @@
+{
+  "mode": "multi-feature",
+  "features": [
+    {"directory": "specs/001-infrastructure", "name": "infrastructure", "status": "spec-created", "phase": "P0", "depends_on": []},
+    {"directory": "specs/002-shared-platform", "name": "shared-platform", "status": "spec-created", "phase": "P1", "depends_on": ["001-infrastructure"]},
+    {"directory": "specs/003-auth-identity", "name": "auth-identity", "status": "spec-created", "phase": "P2", "depends_on": ["002-shared-platform"]},
+    {"directory": "specs/004-profile-badge", "name": "profile-badge", "status": "spec-created", "phase": "P2-P3", "depends_on": ["002-shared-platform", "003-auth-identity"]},
+    {"directory": "specs/005-discovery-matching", "name": "discovery-matching", "status": "spec-created", "phase": "P4", "depends_on": ["002-shared-platform", "004-profile-badge"]},
+    {"directory": "specs/006-vibe-check", "name": "vibe-check", "status": "spec-created", "phase": "P5", "depends_on": ["005-discovery-matching", "008-moderation"]},
+    {"directory": "specs/007-chat-workspace", "name": "chat-workspace", "status": "spec-created", "phase": "P6", "depends_on": ["006-vibe-check", "008-moderation"]},
+    {"directory": "specs/008-moderation", "name": "moderation", "status": "spec-created", "phase": "P7", "depends_on": ["002-shared-platform", "003-auth-identity"]},
+    {"directory": "specs/009-collab-lifecycle", "name": "collab-lifecycle", "status": "spec-created", "phase": "P8", "depends_on": ["007-chat-workspace"]},
+    {"directory": "specs/010-collab-tools", "name": "collab-tools", "status": "spec-created", "phase": "P9", "depends_on": ["009-collab-lifecycle"]},
+    {"directory": "specs/011-meetings", "name": "meetings", "status": "spec-created", "phase": "P10", "depends_on": ["009-collab-lifecycle"]},
+    {"directory": "specs/012-ai-assistant-mockups", "name": "ai-assistant-mockups", "status": "spec-created", "phase": "P11", "depends_on": ["007-chat-workspace", "013-billing"]},
+    {"directory": "specs/013-billing", "name": "billing", "status": "spec-created", "phase": "P12", "depends_on": ["002-shared-platform", "003-auth-identity"]},
+    {"directory": "specs/014-notifications", "name": "notifications", "status": "spec-created", "phase": "P13", "depends_on": ["002-shared-platform"]},
+    {"directory": "specs/015-support", "name": "support", "status": "spec-created", "phase": "P14", "depends_on": ["002-shared-platform"]},
+    {"directory": "specs/016-admin-analytics", "name": "admin-analytics", "status": "spec-created", "phase": "P15", "depends_on": ["008-moderation", "013-billing", "015-support"]},
+    {"directory": "specs/017-marketing-site", "name": "marketing-site", "status": "spec-created", "phase": "P16", "depends_on": ["002-shared-platform"]},
+    {"directory": "specs/018-a11y-i18n", "name": "a11y-i18n", "status": "spec-created", "phase": "P17", "depends_on": ["002-shared-platform"]},
+    {"directory": "specs/019-prelaunch-hardening", "name": "prelaunch-hardening", "status": "spec-created", "phase": "P18", "depends_on": ["all-above"]}
+  ],
+  "current_feature": "specs/001-infrastructure",
+  "created": "2026-05-11",
+  "project": {
+    "name": "Colab",
+    "brand": "TBD (env var BRAND_NAME=Colab in dev)",
+    "repo_url": "https://github.com/colab1571-ctrl/Colab.git",
+    "primary_doc": "/Users/amays/Downloads/Main document.docx"
+  },
+  "pipeline_state": {
+    "phase": "awaiting-phase-7-start",
+    "phase_2_complete": true,
+    "phase_3_complete": true,
+    "phase_3b_complete": true,
+    "phase_4_complete": true,
+    "phase_5_complete": true,
+    "phase_5b_complete": true,
+    "phase_6_complete": true,
+    "clarify_rounds": 23,
+    "clarifications_resolved": 95,
+    "total_tasks": 625,
+    "total_estimated_hours": 3756
+  }
+}

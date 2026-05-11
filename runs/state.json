@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "project": "colab",
+  "repo": "https://github.com/colab1571-ctrl/Colab.git",
+  "primary_doc": "/Users/amays/Downloads/Main document.docx",
+  "pipeline_phase": "5b-reconciliation-complete; 6-tasks-merged; awaiting Phase 7 P0",
+  "completed_phases": [
+    "0-git-setup",
+    "1-parse-requirements",
+    "2-specify-no-assumptions",
+    "3-clarify-23-rounds",
+    "3b-infra-docs",
+    "4-break-into-19-specs",
+    "5-parallel-spec-detailing",
+    "5b-reconciliation",
+    "6-tasks-merged"
+  ],
+  "phase_7_state": {
+    "current_phase": null,
+    "current_feature": null,
+    "current_task": null,
+    "completed_features": [],
+    "completed_tasks": [],
+    "open_blockers": [
+      "apex_domain_unchosen",
+      "aws_account_not_created",
+      "vendor_signups_pending"
+    ]
+  },
+  "totals": {
+    "features": 19,
+    "tasks_estimated": 625,
+    "engineer_hours_estimated": 3756
+  },
+  "artifacts": {
+    "master_spec": "specs/000-master/spec.md",
+    "feature_specs": "specs/001-* through specs/019-*",
+    "feature_plans": "specs/001-*/plan.md through specs/019-*/plan.md",
+    "implementation_plan": "runs/IMPLEMENTATION_PLAN.md",
+    "reconciliation": "runs/RECONCILIATION.md",
+    "clarify_log": "runs/clarify_log.md",
+    "infra_guide": "docs/INFRA.md",
+    "env_template": ".env.example",
+    "terraform_skeleton": "terraform/",
+    "project_log": "runs/PROJECT_LOG.md"
+  },
+  "execution_settings": {
+    "client_platform": "React Native + Expo (iOS + Android)",
+    "web_platforms": ["marketing-static (Next.js)", "consumer-web (Next.js)", "admin-web (Next.js)"],
+    "backend": "Python FastAPI microservices (12+) on AWS EKS",
+    "db": "Postgres 16 + pgvector + PostGIS",
+    "cache": "ElastiCache Redis",
+    "queue": "Amazon MQ for RabbitMQ + Celery",
+    "object_storage": "S3 + CloudFront",
+    "auth": "custom in auth-svc; Apple/Google/Phone OTP",
+    "identity": "Persona",
+    "payments": "RevenueCat (mobile) + Stripe (web)",
+    "ai": "OpenAI + Replicate + Recall.ai",
+    "obs": "Sentry + PostHog + CloudWatch",
+    "launch_geo": ["US", "CA", "AU", "NZ", "IN"]
+  },
+  "last_updated": "2026-05-11"
+}
