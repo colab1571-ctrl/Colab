@@ -85,8 +85,8 @@ async function TicketQueueTable({
               <td className="px-4 py-3 text-xs">{t.user?.handle ?? "—"}</td>
               <td className="px-4 py-3 max-w-xs truncate">{t.subject}</td>
               <td className="px-4 py-3 text-neutral-500 text-xs">{new Date(t.opened_at).toLocaleString()}</td>
-              <td className="px-4 py-3"><SlaTimer dueAt={t.ack_sla_due_at} /></td>
-              <td className="px-4 py-3"><SlaTimer dueAt={t.resolve_sla_due_at} /></td>
+              <td className="px-4 py-3"><SlaTimer {...(t.ack_sla_due_at != null ? { dueAt: t.ack_sla_due_at } : {})} /></td>
+              <td className="px-4 py-3"><SlaTimer {...(t.resolve_sla_due_at != null ? { dueAt: t.resolve_sla_due_at } : {})} /></td>
               <td className="px-4 py-3 capitalize text-xs">{t.status}</td>
               <td className="px-4 py-3">
                 <Link href={`/support/ticket/${t.id}`} className="text-blue-600 hover:underline text-xs">
@@ -102,7 +102,7 @@ async function TicketQueueTable({
 }
 
 export default async function SupportQueuePage(): Promise<React.ReactElement> {
-  const session = requireRole(["support", "super_admin"]);
+  const session = await requireRole(["support", "super_admin"]);
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Support Queue</h1>

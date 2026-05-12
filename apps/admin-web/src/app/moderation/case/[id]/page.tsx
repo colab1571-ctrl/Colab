@@ -51,7 +51,7 @@ async function CaseDetail({ id, userId, roles }: { id: string; userId: string; r
         <form
           action={async (formData: FormData) => {
             "use server";
-            const session = requireRole(["mod", "super_admin"]);
+            const session = await requireRole(["mod", "super_admin"]);
             const action_type = formData.get("action_type") as string;
             const reason = formData.get("reason") as string;
             await takeCaseAction(id, { action_type, reason }, session.userId, session.roles);
@@ -118,7 +118,7 @@ async function AuditHistory({ id, userId, roles }: { id: string; userId: string;
 }
 
 export default async function CaseDetailPage({ params }: Props): Promise<React.ReactElement> {
-  const session = requireRole(["mod", "super_admin"]);
+  const session = await requireRole(["mod", "super_admin"]);
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Case {params.id.slice(0, 8)}</h1>

@@ -82,7 +82,7 @@ async function QueueTable({
 }
 
 export default async function ModerationQueuePage(): Promise<React.ReactElement> {
-  const session = requireRole(["mod", "super_admin"]);
+  const session = await requireRole(["mod", "super_admin"]);
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Moderation Queue</h1>

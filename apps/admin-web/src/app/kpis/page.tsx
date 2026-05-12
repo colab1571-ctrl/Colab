@@ -76,7 +76,7 @@ async function KPIDashboard({
 }
 
 export default async function KpiDashboardPage(): Promise<React.ReactElement> {
-  const session = requireRole(["mod", "support", "billing_admin", "super_admin"]);
+  const session = await requireRole(["mod", "support", "billing_admin", "super_admin"]);
 
   return (
     <div className="p-8 max-w-7xl mx-auto">

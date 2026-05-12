@@ -23,3 +23,6 @@ dev-dependencies = [
 
 [tool.uv.sources]
 colab-common = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]

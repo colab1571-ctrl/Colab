@@ -19,13 +19,15 @@ export interface AdminSession {
  * Decode the admin JWT (server-side only, no verification — admin-svc verifies).
  * Returns null if cookie is missing or malformed.
  */
-export function decodeAdminSession(): AdminSession | null {
-  const cookieStore = cookies();
+export async function decodeAdminSession(): Promise<AdminSession | null> {
+  const cookieStore = await cookies();
   const token = cookieStore.get("colab-admin-session")?.value;
   if (!token) return null;
 
   try {
-    const [, payloadB64] = token.split(".");
+    const parts = token.split(".");
+    const payloadB64 = parts[1];
+    if (!payloadB64) return null;
     const payload = JSON.parse(
       Buffer.from(payloadB64, "base64url").toString("utf-8"),
     );
@@ -42,8 +44,8 @@ export function decodeAdminSession(): AdminSession | null {
 /**
  * Require an admin session; redirect to /login if missing.
  */
-export function requireSession(): AdminSession {
-  const session = decodeAdminSession();
+export async function requireSession(): Promise<AdminSession> {
+  const session = await decodeAdminSession();
   if (!session) {
     redirect("/login");
   }
@@ -53,8 +55,8 @@ export function requireSession(): AdminSession {
 /**
  * Require one of the given roles; redirect to /forbidden if not present.
  */
-export function requireRole(roles: string[]): AdminSession {
-  const session = requireSession();
+export async function requireRole(roles: string[]): Promise<AdminSession> {
+  const session = await requireSession();
   const hasRole = session.roles.some((r) => roles.includes(r));
   if (!hasRole) {
     redirect("/forbidden");

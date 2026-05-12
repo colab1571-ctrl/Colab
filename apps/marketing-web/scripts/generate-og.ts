@@ -14,6 +14,7 @@
  */
 
 import { ImageResponse } from "@vercel/og";
+import type { ReactElement } from "react";
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -53,7 +54,7 @@ const pages: OgPageConfig[] = [
 
 async function generateOgImage(page: OgPageConfig): Promise<void> {
   const image = new ImageResponse(
-    {
+    ({
       type: "div",
       props: {
         style: {
@@ -145,7 +146,7 @@ async function generateOgImage(page: OgPageConfig): Promise<void> {
           },
         ],
       },
-    },
+    } as unknown as ReactElement),
     { width: 1200, height: 630 }
   );
 

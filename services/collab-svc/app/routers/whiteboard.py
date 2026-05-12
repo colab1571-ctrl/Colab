@@ -32,7 +32,6 @@ from app.services.whiteboard_service import (
 )
 from app.services.whiteboard_ws import (
     WS_CLOSE_NOT_PARTICIPANT,
-    WS_CLOSE_READONLY,
     handle_whiteboard_ws,
 )
 from app.workers.events import emit_event

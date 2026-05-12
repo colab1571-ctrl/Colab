@@ -66,7 +66,7 @@ export default async function User360Page({
   params,
   searchParams,
 }: Props & { searchParams: { reveal?: string } }): Promise<React.ReactElement> {
-  const session = requireRole(["mod", "support", "billing_admin", "super_admin"]);
+  const session = await requireRole(["mod", "support", "billing_admin", "super_admin"]);
   const reveal = searchParams.reveal === "true";
 
   return (

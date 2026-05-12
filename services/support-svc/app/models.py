@@ -43,7 +43,7 @@ except ImportError:  # pragma: no cover
 
 
 class Base(DeclarativeBase):
-    pass
+    __allow_unmapped__ = True
 
 
 # ---------------------------------------------------------------------------
@@ -140,7 +140,7 @@ class SupportTicketEvent(Base):
     actor: str = Column(String(20), nullable=False)  # user | agent | system
     actor_id: uuid.UUID | None = Column(UUID(as_uuid=True), nullable=True)
     body: str | None = Column(Text, nullable=True)
-    metadata: dict | None = Column(JSONB, nullable=True)
+    event_metadata: dict | None = Column("metadata", JSONB, nullable=True)
 
     created_at: datetime = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

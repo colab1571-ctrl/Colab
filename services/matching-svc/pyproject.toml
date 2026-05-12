@@ -33,7 +33,7 @@ dev-dependencies = [
     "colab-common[testing]",
     "freezegun>=1.5,<2",
     "respx>=0.21,<1",
-    "pytest-cov>=5.0,<6",
+    "pytest-cov>=6.0,<7",
     "fakeredis[aioredis]>=2.0,<3",
 ]
 
@@ -43,3 +43,6 @@ colab-common = { workspace = true }
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]

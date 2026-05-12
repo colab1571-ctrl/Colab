@@ -97,7 +97,7 @@ if (!i18next.isInitialized) {
         useSuspense: false, // safer for SSR / streaming
       },
       // Override detection result with persisted user pref (step 1 of priority chain)
-      lng: getStoredLocale() ?? undefined,
+      ...(getStoredLocale() != null ? { lng: getStoredLocale() as string } : {}),
     });
 }
 

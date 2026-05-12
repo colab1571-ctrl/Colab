@@ -4,10 +4,10 @@ import time
 
 import jwt
 import pytest
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
-from colab_common.auth import AuthUser, mint_jwt, mint_service_token, require_role, require_user
+from colab_common.auth import AuthUser, mint_service_token, require_role, require_user
 from colab_common.errors import AuthError, ForbiddenError, register_handlers
 from colab_common.testing import mint_jwt
 
@@ -40,11 +40,11 @@ def _make_app() -> FastAPI:
     register_handlers(app)
 
     @app.get("/me")
-    async def me_endpoint(user: AuthUser = require_user) -> dict[str, str]:  # type: ignore[assignment]
+    async def me_endpoint(user: AuthUser = Depends(require_user)) -> dict[str, str]:
         return {"user_id": user.user_id, "tier": user.tier}
 
     @app.get("/admin-only")
-    async def admin_endpoint(user: AuthUser = require_role("admin")) -> dict[str, str]:  # type: ignore[assignment]
+    async def admin_endpoint(user: AuthUser = Depends(require_role("admin"))) -> dict[str, str]:
         return {"user_id": user.user_id}
 
     return app

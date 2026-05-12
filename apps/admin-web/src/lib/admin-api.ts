@@ -34,7 +34,7 @@ async function adminFetch<T>(
   const res = await fetch(`${ADMIN_API_BASE}${path}`, {
     method: opts.method ?? "GET",
     headers,
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
+    ...(opts.body != null ? { body: JSON.stringify(opts.body) } : {}),
     next: { revalidate },
   });
 
