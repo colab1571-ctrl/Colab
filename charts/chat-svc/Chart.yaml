@@ -1,0 +1,12 @@
+apiVersion: v2
+name: chat-svc
+description: Colab Chat Service — WebSocket gateway, message persistence, presence, read receipts
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+dependencies:
+  - name: svc
+    version: "0.1.0"
+    repository: "file://../../charts/svc"
+    alias: svc

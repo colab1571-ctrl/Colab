@@ -1,0 +1,87 @@
+# media-svc Helm values
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI
+    tag: "latest"
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+  serviceAccount:
+    create: true
+    annotations:
+      # IRSA role must have:
+      #   s3:GetObject, s3:PutObject, s3:HeadObject — on colab-media bucket
+      #   secretsmanager:GetSecretValue — for CloudFront private key
+      eks.amazonaws.com/role-arn: ""
+
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+
+    # S3
+    MEDIA_S3_MEDIA_BUCKET: "colab-media"
+    MEDIA_S3_PRESIGN_TTL_SECONDS: "300"
+
+    # CloudFront
+    MEDIA_SIGNED_URL_TTL_SECONDS: "300"
+    MEDIA_SIGNED_URL_CACHE_REFRESH_THRESHOLD_SECONDS: "60"
+
+    # Moderation-svc (ClusterIP)
+    MEDIA_MODERATION_SVC_URL: "http://moderation-svc:8000"
+    MEDIA_MODERATION_SCAN_TIMEOUT_SECONDS: "15"
+
+    # pHash
+    MEDIA_PHASH_HAMMING_THRESHOLD: "6"
+
+    AWS_DEFAULT_REGION: "us-east-1"
+
+  envFromSecret: "media-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/media-svc/env"
+    # Secret contains:
+    #   DATABASE_URL                          — PostgreSQL (asyncpg)
+    #   REDIS_URL                             — ElastiCache
+    #   RABBITMQ_URL                          — RabbitMQ
+    #   MEDIA_CLOUDFRONT_DOMAIN               — CloudFront distribution domain
+    #   MEDIA_CLOUDFRONT_KEY_PAIR_ID          — CloudFront key pair ID
+    #   MEDIA_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN — Secrets Manager ARN for RSA key
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: 8000
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 30
