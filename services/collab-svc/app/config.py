@@ -36,6 +36,12 @@ class CollabSettings(BaseSettings):
     nudge_days: int = 14
     archive_days: int = 30
 
+    # Whiteboard settings
+    whiteboard_idle_snapshot_seconds: int = 10
+    whiteboard_redis_doc_ttl_seconds: int = 3600  # 1 hour hot-cache TTL
+    whiteboard_op_retention_days: int = 30       # prune ops older than snapshot
+    playwright_sidecar_url: str = "http://whiteboard-render:3000"  # Node.js render sidecar
+
 
 @lru_cache
 def get_collab_settings() -> CollabSettings:

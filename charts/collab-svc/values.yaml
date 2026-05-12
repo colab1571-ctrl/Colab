@@ -83,6 +83,33 @@ beat:
       memory: "256Mi"
 
 # ---------------------------------------------------------------------------
+# Whiteboard export render sidecar (Node.js Playwright — WB-BE-8)
+# Runs as a separate Deployment in the same namespace.
+# The Celery whiteboard_export_generate task calls it via HTTP.
+#
+# To enable, set whiteboardRender.enabled = true and supply image.repository.
+# Memory: Playwright + Chromium require ~800Mi per concurrent render.
+# ---------------------------------------------------------------------------
+whiteboardRender:
+  enabled: false        # Set to true when the Node.js render image is built
+  replicaCount: 1
+  image:
+    repository: ""      # e.g., 123456789.dkr.ecr.us-east-1.amazonaws.com/whiteboard-render
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 3000
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"   # Chromium headroom
+  env:
+    S3_BUCKET: ""       # Injected from secret
+    S3_REGION: "us-east-1"
+
+# ---------------------------------------------------------------------------
 # Alembic migration job (runs on deploy, before API pod swap)
 # ---------------------------------------------------------------------------
 migrate:
