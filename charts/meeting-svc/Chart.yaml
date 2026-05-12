@@ -1,0 +1,10 @@
+apiVersion: v2
+name: meeting-svc
+description: Colab meeting service — Google Meet scheduling, Recall.ai bot, transcript ingestion
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  - name: svc
+    version: "0.1.0"
+    repository: "file://../svc"

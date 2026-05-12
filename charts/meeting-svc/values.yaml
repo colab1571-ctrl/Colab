@@ -1,0 +1,86 @@
+# meeting-svc Helm values
+# Inherits base chart defaults from charts/svc/values.yaml
+
+svc:
+  image:
+    repository: ""  # ECR repo URI — set by CI (e.g., 123456789.dkr.ecr.us-east-1.amazonaws.com/meeting-svc)
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  envFromSecret: "meeting-svc-env"
+
+  externalSecret:
+    remoteRef: "colab/prod/meeting-svc/env"
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  env:
+    ENV: "production"
+    # Non-secret env vars. Secrets come from Secrets Manager via externalSecret above.
+    MEETING_GOOGLE_CALENDAR_ID: "primary"
+    MEETING_RECALL_API_BASE_URL: "https://api.recall.ai/api/v1"
+    MEETING_RECALL_WEBHOOK_URL: "https://api.colab.app/webhooks/recall"
+    MEETING_S3_BUCKET: "colab-meeting-artifacts-prod"
+    MEETING_S3_REGION: "us-east-1"
+    MEETING_ARTIFACT_URL_TTL_SECONDS: "3600"
+    MEETING_BOT_NAME: "Colab Notes Bot"
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilization: 70
+
+  # IRSA annotation — EKS pod identity for Secrets Manager + S3 access
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/meeting-svc-irsa"
+
+# ---------------------------------------------------------------------------
+# Celery worker — handles meeting_bot + meeting_webhook queues
+# ---------------------------------------------------------------------------
+worker:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ""  # Same ECR repo as API, same image, different CMD
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  command: ["celery", "-A", "app.workers.celery_app", "worker"]
+  args:
+    - "--loglevel=info"
+    - "--queues=meeting_bot,meeting_webhook"
+    - "--concurrency=4"
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+# ---------------------------------------------------------------------------
+# Alembic migration job (runs on deploy, before API pod swap)
+# ---------------------------------------------------------------------------
+migrate:
+  enabled: true
+  command: ["alembic", "upgrade", "head"]
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
