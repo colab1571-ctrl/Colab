@@ -1,4 +1,4 @@
 aws_region   = "us-east-1"
 env          = "staging"
-apex_domain  = "staging.colab.test"
-email_domain = "staging.colab.test"
+apex_domain  = "staging.colabclub.net"
+email_domain = "staging.colabclub.net"
