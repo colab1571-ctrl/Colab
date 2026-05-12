@@ -1,0 +1,1 @@
+"""discovery-svc application package."""
