@@ -1,0 +1,10 @@
+apiVersion: v2
+name: collab-svc
+description: Colab collaboration lifecycle service — status machine, inactivity cadence, feedback, chat export, activity history
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  - name: svc
+    version: "0.1.0"
+    repository: "file://../svc"
