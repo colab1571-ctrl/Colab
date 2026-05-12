@@ -13,7 +13,6 @@ from datetime import datetime
 
 from sqlalchemy import (
     BigInteger,
-    Boolean,
     Column,
     DateTime,
     Enum,
@@ -110,11 +109,14 @@ class ChatMessage(Base):
         {"schema": "chat"},
     )
 
-    # UUIDv7 — time-ordered; must be supplied by application layer
+    # UUIDv7 — time-ordered; must be supplied by application layer.
+    # Note: partitioned table uses (id, created_at) composite PK in DDL.
+    # SQLAlchemy ORM uses id as logical PK for query purposes.
     id: uuid.UUID = Column(UUID(as_uuid=True), primary_key=True)
     room_id: uuid.UUID = Column(
         UUID(as_uuid=True),
-        ForeignKey("chat.chat_room.id"),
+        # No ForeignKey here: Postgres partitioned tables don't support FK refs
+        # to composite PKs cleanly; referential integrity enforced at app layer.
         nullable=False,
     )
     sender_profile_id: uuid.UUID = Column(UUID(as_uuid=True), nullable=False)
@@ -126,7 +128,7 @@ class ChatMessage(Base):
     duration_ms: int | None = Column(Integer, nullable=True)
     reply_to: uuid.UUID | None = Column(
         UUID(as_uuid=True),
-        ForeignKey("chat.chat_message.id"),
+        # Self-referential reply; no FK on partitioned table — enforced at app layer.
         nullable=True,
     )
     client_nonce: uuid.UUID | None = Column(UUID(as_uuid=True), nullable=True)
@@ -164,8 +166,7 @@ class ChatMessageRevision(Base):
     id: int = Column(BigInteger, primary_key=True, autoincrement=True)
     msg_id: uuid.UUID = Column(
         UUID(as_uuid=True),
-        ForeignKey("chat.chat_message.id"),
-        nullable=False,
+        nullable=False,  # References chat_message.id; no FK on partitioned table
     )
     version: int = Column(SmallInteger, nullable=False)
     body: str = Column(Text, nullable=False)
@@ -190,8 +191,7 @@ class ChatAttachment(Base):
     )
     msg_id: uuid.UUID = Column(
         UUID(as_uuid=True),
-        ForeignKey("chat.chat_message.id"),
-        nullable=False,
+        nullable=False,  # References chat_message.id; no FK on partitioned table
     )
     kind: str = Column(Text, nullable=False)  # image|audio|video|doc|voice
     s3_key: str = Column(Text, nullable=False)
@@ -215,7 +215,7 @@ class ChatReadReceipt(Base):
 
     room_id: uuid.UUID = Column(
         UUID(as_uuid=True),
-        ForeignKey("chat.chat_room.id"),
+        ForeignKey("chat.chat_room.id"),  # chat_room has standard PK — FK is fine
         primary_key=True,
     )
     profile_id: uuid.UUID = Column(UUID(as_uuid=True), primary_key=True)
