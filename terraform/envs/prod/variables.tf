@@ -19,3 +19,9 @@ variable "email_domain" {
   type        = string
   description = "Domain used by SES for sender identity. Typically apex or a subdomain."
 }
+
+variable "budget_alert_email" {
+  type        = string
+  description = "Email address for AWS Budgets cost alerts."
+  default     = ""
+}

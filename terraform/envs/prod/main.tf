@@ -175,6 +175,13 @@ module "github_oidc" {
   allowed_refs = ["refs/heads/main"]
 }
 
+module "budgets" {
+  source          = "../../modules/budgets"
+  env             = var.env
+  daily_limit_usd = 200
+  alert_email     = var.budget_alert_email
+}
+
 locals {
   services = [
     "gateway", "auth-svc", "profile-svc", "identity-svc", "discovery-svc",
