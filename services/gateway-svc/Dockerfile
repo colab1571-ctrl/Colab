@@ -17,8 +17,10 @@ COPY services/gateway-svc/pyproject.toml ./services/gateway-svc/pyproject.toml
 # Install dependencies into a virtual env
 RUN uv sync --frozen --no-dev --package gateway-svc
 
-# Copy application source
+# Copy application source + migrations
 COPY services/gateway-svc/app/ ./services/gateway-svc/app/
+COPY services/gateway-svc/migrations/ ./services/gateway-svc/migrations/
+COPY services/gateway-svc/alembic.ini ./services/gateway-svc/alembic.ini
 
 # ─── Stage 2: runtime ─────────────────────────────────────────────────────────
 FROM python:3.12-slim AS runtime
@@ -32,6 +34,8 @@ WORKDIR /app
 # Copy only the virtual env from builder
 COPY --from=builder /build/.venv /app/.venv
 COPY --from=builder /build/services/gateway-svc/app /app/app
+COPY --from=builder /build/services/gateway-svc/migrations /app/migrations
+COPY --from=builder /build/services/gateway-svc/alembic.ini /app/alembic.ini
 COPY --from=builder /build/packages/colab_common/src /app/colab_common_src
 
 ENV PATH="/app/.venv/bin:$PATH" \

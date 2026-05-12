@@ -1,0 +1,344 @@
+---
+# =============================================================================
+# Colab Stage-2 Demo Stack
+# Brings up: Postgres, Redis, RabbitMQ, LocalStack + 5 core services
+# Usage: make demo-up
+# =============================================================================
+
+version: "3.9"
+
+x-common-env: &common-env
+  ENV: local
+  LOG_LEVEL: INFO
+  AWS_REGION: us-east-1
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test
+  AWS_ENDPOINT_URL: http://localstack:4566
+  RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+  JWT_SECRET: dev-secret-change-in-prod
+  APP_DOMAIN: localhost
+  MARKETING_DOMAIN: localhost
+  ADMIN_DOMAIN: localhost
+  API_DOMAIN: localhost
+  GIT_SHA: dev
+  IMAGE_TAG: dev
+
+x-build-context: &build-context
+  context: .
+  args:
+    GIT_SHA: dev
+    IMAGE_TAG: dev
+
+services:
+  # ---------------------------------------------------------------------------
+  # Infrastructure
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: colab
+      POSTGRES_PASSWORD: colab
+      POSTGRES_DB: colab_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U colab -d colab_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  localstack:
+    image: localstack/localstack:latest
+    restart: unless-stopped
+    environment:
+      SERVICES: s3,ses,sns,secretsmanager
+      DEFAULT_REGION: us-east-1
+      EAGER_SERVICE_LOADING: 1
+      LOCALSTACK_HOST: localstack
+    ports:
+      - "4566:4566"
+    volumes:
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Migrations (one-shot; each depends on postgres healthy)
+  # ---------------------------------------------------------------------------
+  migrate-gateway:
+    build:
+      <<: *build-context
+      dockerfile: services/gateway-svc/Dockerfile
+    image: colab/gateway-svc:dev
+    command: >
+      sh -c "cd /app && alembic -c alembic.ini upgrade head"
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgresql://colab:colab@postgres:5432/colab_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  migrate-auth:
+    build:
+      <<: *build-context
+      dockerfile: services/auth-svc/Dockerfile
+    image: colab/auth-svc:dev
+    command: >
+      sh -c "cd /app && alembic -c alembic/alembic.ini upgrade head"
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgresql+asyncpg://colab:colab@postgres:5432/colab_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  migrate-profile:
+    build:
+      <<: *build-context
+      dockerfile: services/profile-svc/Dockerfile
+    image: colab/profile-svc:dev
+    command: >
+      sh -c "cd /app && alembic -c alembic/alembic.ini upgrade head"
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgresql+asyncpg://colab:colab@postgres:5432/colab_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  migrate-discovery:
+    build:
+      <<: *build-context
+      dockerfile: services/discovery-svc/Dockerfile
+    image: colab/discovery-svc:dev
+    command: >
+      sh -c "cd /app && alembic -c alembic/alembic.ini upgrade head"
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgresql+asyncpg://colab:colab@postgres:5432/colab_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  migrate-chat:
+    build:
+      <<: *build-context
+      dockerfile: services/chat-svc/Dockerfile
+    image: colab/chat-svc:dev
+    command: >
+      sh -c "cd /app && alembic -c alembic/alembic.ini upgrade head"
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgresql+asyncpg://colab:colab@postgres:5432/colab_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  # ---------------------------------------------------------------------------
+  # Application Services
+  # ---------------------------------------------------------------------------
+  auth-svc:
+    image: colab/auth-svc:dev
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgresql+asyncpg://colab:colab@postgres:5432/colab_dev
+      REDIS_URL: redis://redis:6379/1
+      SES_FROM_ADDRESS: noreply@colab.test
+      SES_REGION: us-east-1
+      GOOGLE_CLIENT_ID: placeholder-google-client-id
+      GOOGLE_CLIENT_SECRET: placeholder-google-client-secret
+      APPLE_CLIENT_ID: placeholder-apple-client-id
+      APPLE_TEAM_ID: placeholder-apple-team-id
+      APPLE_KEY_ID: placeholder-apple-key-id
+      APPLE_PRIVATE_KEY: placeholder-apple-private-key
+      TWILIO_ACCOUNT_SID: placeholder-twilio-sid
+      TWILIO_AUTH_TOKEN: placeholder-twilio-token
+      TWILIO_VERIFY_SERVICE_SID: placeholder-twilio-verify-sid
+    ports:
+      - "8001:8000"
+    depends_on:
+      migrate-auth:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  profile-svc:
+    image: colab/profile-svc:dev
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgresql+asyncpg://colab:colab@postgres:5432/colab_dev
+      REDIS_URL: redis://redis:6379/2
+      S3_BUCKET_MEDIA: colab-media-dev
+      S3_REGION: us-east-1
+    ports:
+      - "8002:8000"
+    depends_on:
+      migrate-profile:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  discovery-svc:
+    image: colab/discovery-svc:dev
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgresql+asyncpg://colab:colab@postgres:5432/colab_dev
+      REDIS_URL: redis://redis:6379/3
+    ports:
+      - "8003:8000"
+    depends_on:
+      migrate-discovery:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  chat-svc:
+    image: colab/chat-svc:dev
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgresql+asyncpg://colab:colab@postgres:5432/colab_dev
+      REDIS_URL: redis://redis:6379/4
+    ports:
+      - "8004:8000"
+    depends_on:
+      migrate-chat:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  gateway-svc:
+    build:
+      <<: *build-context
+      dockerfile: services/gateway-svc/Dockerfile
+    image: colab/gateway-svc:dev
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgresql+asyncpg://colab:colab@postgres:5432/colab_dev
+      REDIS_URL: redis://redis:6379/0
+      UPSTREAM_AUTH_URL: http://auth-svc:8000
+      UPSTREAM_PROFILE_URL: http://profile-svc:8000
+      UPSTREAM_DISCOVERY_URL: http://discovery-svc:8000
+      UPSTREAM_CHAT_URL: http://chat-svc:8000
+      UPSTREAM_IDENTITY_URL: http://auth-svc:8000
+      UPSTREAM_MATCHING_URL: http://discovery-svc:8000
+      UPSTREAM_INVITE_URL: http://discovery-svc:8000
+      UPSTREAM_COLLAB_URL: http://discovery-svc:8000
+      UPSTREAM_MEDIA_URL: http://profile-svc:8000
+      UPSTREAM_AI_URL: http://discovery-svc:8000
+      UPSTREAM_MODERATION_URL: http://discovery-svc:8000
+      UPSTREAM_NOTIFICATION_URL: http://discovery-svc:8000
+      UPSTREAM_BILLING_URL: http://discovery-svc:8000
+      UPSTREAM_SUPPORT_URL: http://discovery-svc:8000
+      UPSTREAM_ADMIN_URL: http://discovery-svc:8000
+      UPSTREAM_GEO_URL: http://discovery-svc:8000
+      UPSTREAM_MEETING_URL: http://discovery-svc:8000
+      UPSTREAM_ANALYTICS_URL: http://discovery-svc:8000
+      UPSTREAM_HELLO_URL: http://discovery-svc:8000
+    ports:
+      - "8080:8000"
+    depends_on:
+      migrate-gateway:
+        condition: service_completed_successfully
+      auth-svc:
+        condition: service_healthy
+      profile-svc:
+        condition: service_healthy
+      discovery-svc:
+        condition: service_healthy
+      chat-svc:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  postgres_data:
+  localstack_data:
+
+networks:
+  default:
+    name: colab-demo

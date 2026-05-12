@@ -1,4 +1,5 @@
-.PHONY: bootstrap lint test openapi openapi-check build deploy clean help
+.PHONY: bootstrap lint test openapi openapi-check build deploy clean help \
+        demo-up demo-down demo-logs demo-migrate demo-seed demo-smoke demo-build
 
 # =============================================================================
 # Colab Monorepo Makefile
@@ -65,6 +66,40 @@ deploy: ## Deploy all services via Helm (env=staging|prod required)
 	@if [ -z "$(env)" ]; then echo "Usage: make deploy env=staging"; exit 1; fi
 	@echo "→ Deploying to $(env)..."
 	./scripts/deploy.sh $(env)
+
+# ---------------------------------------------------------------------------
+# Stage-2 Demo targets
+# ---------------------------------------------------------------------------
+COMPOSE := docker compose
+
+demo-build: ## Build all 5 demo service images
+	$(COMPOSE) build gateway-svc auth-svc profile-svc discovery-svc chat-svc
+
+demo-up: ## Start the full demo stack (infra + 5 services)
+	$(COMPOSE) up -d
+	@echo "→ Gateway available at http://localhost:8080"
+	@echo "→ RabbitMQ management at http://localhost:15672 (guest/guest)"
+
+demo-down: ## Stop and remove demo containers
+	$(COMPOSE) down
+
+demo-logs: ## Follow logs from all demo containers
+	$(COMPOSE) logs -f
+
+demo-migrate: ## Run all service migrations
+	$(COMPOSE) run --rm migrate-gateway
+	$(COMPOSE) run --rm migrate-auth
+	$(COMPOSE) run --rm migrate-profile
+	$(COMPOSE) run --rm migrate-discovery
+	$(COMPOSE) run --rm migrate-chat
+
+demo-seed: ## Seed minimal fixtures (test user + sample profiles)
+	@echo "→ Seeding demo data..."
+	bash scripts/smoke/demo_seed.sh
+
+demo-smoke: ## Run signup smoke test: signup → JWT → fetch profile
+	@echo "→ Running smoke test..."
+	bash scripts/smoke/demo_signup.sh
 
 # ---------------------------------------------------------------------------
 clean: ## Remove all build artifacts

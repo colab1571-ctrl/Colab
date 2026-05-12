@@ -13,7 +13,8 @@ RUN uv sync --frozen --no-dev --package auth-svc
 
 COPY services/auth-svc/app/ ./services/auth-svc/app/
 COPY services/auth-svc/alembic/ ./services/auth-svc/alembic/
-COPY services/auth-svc/templates/ ./services/auth-svc/templates/
+# templates/ is optional (email HTML templates); create an empty dir if absent
+RUN mkdir -p ./services/auth-svc/templates
 
 FROM python:3.12-slim AS runtime
 
