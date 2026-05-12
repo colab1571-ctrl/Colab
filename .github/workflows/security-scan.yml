@@ -1,0 +1,312 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Nightly full scan at 02:00 UTC
+    - cron: "0 2 * * *"
+
+permissions:
+  contents: read
+  security-events: write   # upload SARIF to GitHub Security tab
+  pull-requests: write     # post scan summary comments
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Trivy — Container image scanning (per service)
+  # ---------------------------------------------------------------------------
+  trivy-scan:
+    name: Trivy (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - auth-svc
+          - billing-svc
+          - chat-svc
+          - moderation-svc
+          - media-svc
+          - ai-orchestrator-svc
+          - profile-svc
+          - identity-svc
+          - discovery-svc
+          - matching-svc
+          - invite-svc
+          - collab-svc
+          - notification-svc
+          - analytics-svc
+          - admin-svc
+          - support-svc
+          - geo-svc
+          - meeting-svc
+          - gateway-svc
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        run: |
+          docker build \
+            -t colab/${{ matrix.service }}:${{ github.sha }} \
+            services/${{ matrix.service }}/
+
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: colab/${{ matrix.service }}:${{ github.sha }}
+          format: sarif
+          output: trivy-${{ matrix.service }}.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: false
+          vuln-type: os,library
+          scanners: vuln,secret,misconfig
+
+      - name: Upload Trivy SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-${{ matrix.service }}.sarif
+          category: trivy-${{ matrix.service }}
+
+      - name: Generate SBOM (CycloneDX)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          trivy image \
+            --format cyclonedx \
+            --output sbom-${{ matrix.service }}-${{ github.sha }}.json \
+            colab/${{ matrix.service }}:${{ github.sha }}
+
+      - name: Upload SBOM artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ matrix.service }}-${{ github.sha }}
+          path: sbom-${{ matrix.service }}-${{ github.sha }}.json
+          retention-days: 365
+
+  # ---------------------------------------------------------------------------
+  # Snyk SCA — Software Composition Analysis
+  # ---------------------------------------------------------------------------
+  snyk-python:
+    name: Snyk Python SCA (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - auth-svc
+          - billing-svc
+          - chat-svc
+          - moderation-svc
+          - media-svc
+          - ai-orchestrator-svc
+          - profile-svc
+          - identity-svc
+          - discovery-svc
+          - matching-svc
+          - invite-svc
+          - collab-svc
+          - notification-svc
+          - analytics-svc
+          - admin-svc
+          - support-svc
+          - geo-svc
+          - meeting-svc
+          - gateway-svc
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Snyk Python test
+        uses: snyk/actions/python@master
+        continue-on-error: false
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: >
+            --severity-threshold=high
+            --file=services/${{ matrix.service }}/pyproject.toml
+            --project-name=colab-${{ matrix.service }}
+
+      - name: Monitor with Snyk (main branch only)
+        if: github.ref == 'refs/heads/main'
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: >
+            --file=services/${{ matrix.service }}/pyproject.toml
+            --project-name=colab-${{ matrix.service }}
+            --org=${{ secrets.SNYK_ORG_ID }}
+
+  snyk-npm:
+    name: Snyk npm SCA (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - apps/consumer-web
+          - apps/marketing-web
+          - apps/admin-web
+          - apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Snyk npm test
+        uses: snyk/actions/node@master
+        continue-on-error: false
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: >
+            --severity-threshold=high
+            --file=${{ matrix.app }}/package.json
+            --project-name=colab-${{ matrix.app }}
+
+  # ---------------------------------------------------------------------------
+  # semgrep — SAST (Python + TypeScript + YAML)
+  # ---------------------------------------------------------------------------
+  semgrep:
+    name: semgrep SAST
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run semgrep
+        run: |
+          semgrep ci \
+            --config p/python \
+            --config p/fastapi \
+            --config p/typescript \
+            --config p/react \
+            --config p/secrets \
+            --config p/owasp-top-ten \
+            --config p/docker \
+            --config p/kubernetes \
+            --config tools/semgrep/ \
+            --sarif \
+            --output semgrep.sarif \
+            --error
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: Upload semgrep SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  # ---------------------------------------------------------------------------
+  # bandit — Python SAST (AST-level)
+  # ---------------------------------------------------------------------------
+  bandit:
+    name: bandit Python SAST (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - auth-svc
+          - billing-svc
+          - chat-svc
+          - moderation-svc
+          - media-svc
+          - ai-orchestrator-svc
+          - profile-svc
+          - identity-svc
+          - discovery-svc
+          - matching-svc
+          - invite-svc
+          - collab-svc
+          - notification-svc
+          - analytics-svc
+          - admin-svc
+          - support-svc
+          - geo-svc
+          - meeting-svc
+          - gateway-svc
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install bandit
+        run: pip install bandit[toml]
+
+      - name: Run bandit
+        run: |
+          bandit \
+            -r services/${{ matrix.service }}/app/ \
+            -ll \
+            --format sarif \
+            -o bandit-${{ matrix.service }}.sarif || exit 1
+
+      - name: Upload bandit SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-${{ matrix.service }}.sarif
+          category: bandit-${{ matrix.service }}
+
+  # ---------------------------------------------------------------------------
+  # eslint-security — TypeScript / React Native
+  # ---------------------------------------------------------------------------
+  eslint-security:
+    name: eslint security (TS/RN)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run eslint security scan
+        run: pnpm run lint:security
+        # package.json script: "lint:security": "eslint --ext .ts,.tsx --rule 'security/detect-eval-with-expression: error' apps/ packages/"
+
+  # ---------------------------------------------------------------------------
+  # Dependency-aware gate: all scans must pass before merge allowed
+  # ---------------------------------------------------------------------------
+  security-gate:
+    name: Security Gate (all scans passed)
+    needs:
+      - trivy-scan
+      - snyk-python
+      - snyk-npm
+      - semgrep
+      - bandit
+      - eslint-security
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check all security jobs passed
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "One or more security scans failed. Blocking merge."
+            exit 1
+          fi
+          echo "All security scans passed."

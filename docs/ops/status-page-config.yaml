@@ -1,0 +1,229 @@
+# Statuspage.io Configuration — Colab Platform
+# Version: 1.0
+# Date: 2026-05-11
+# Provider: Atlassian Statuspage.io (Business plan minimum)
+#
+# This file documents the Statuspage.io component configuration.
+# Apply via Statuspage.io API or manually via dashboard.
+# API base: https://api.statuspage.io/v1/pages/{page_id}/
+
+page:
+  name: "[BRAND_NAME] Status"
+  domain: "status.[brandname].com"
+  subdomain: "colab-status"
+  # Link from: app Settings > System Status + marketing site footer
+  allow_page_subscribers: true
+  allow_incident_subscribers: true
+  allow_email_subscribers: true
+  allow_sms_subscribers: false  # Requires Statuspage SMS add-on
+  notification_logo: "https://cdn.[brandname].com/brand/logo-mark.png"
+  support_url: "https://[brandname].com/support"
+  twitter_username: ""  # Add when social presence established
+
+# ---------------------------------------------------------------------------
+# Component Groups
+# ---------------------------------------------------------------------------
+component_groups:
+  - name: Core Platform
+    description: "Login, account management, and content discovery"
+    position: 1
+
+  - name: Collaboration
+    description: "Chat, file sharing, and AI tools"
+    position: 2
+
+  - name: Payments
+    description: "Subscription and billing"
+    position: 3
+
+  - name: Infrastructure
+    description: "Push notifications, media delivery, and background services"
+    position: 4
+
+# ---------------------------------------------------------------------------
+# Components
+# ---------------------------------------------------------------------------
+components:
+  # Core Platform group
+  - name: "API & Authentication"
+    description: "Login, sign up, and account management"
+    group: "Core Platform"
+    user_facing: true
+    underlying_services:
+      - gateway-svc
+      - auth-svc
+    position: 1
+    showcase: true
+
+  - name: "Discovery Feed"
+    description: "Browse and discover creators"
+    group: "Core Platform"
+    user_facing: true
+    underlying_services:
+      - discovery-svc
+      - matching-svc
+    position: 2
+    showcase: true
+
+  - name: "Creator Profiles"
+    description: "View and update creator profiles"
+    group: "Core Platform"
+    user_facing: true
+    underlying_services:
+      - profile-svc
+      - identity-svc
+    position: 3
+
+  # Collaboration group
+  - name: "Messaging & Chat"
+    description: "Chat with your collaborators"
+    group: "Collaboration"
+    user_facing: true
+    underlying_services:
+      - chat-svc
+    position: 1
+    showcase: true
+
+  - name: "File Sharing"
+    description: "Share files in your collaboration workspace"
+    group: "Collaboration"
+    user_facing: true
+    underlying_services:
+      - media-svc
+      - collab-svc
+    position: 2
+
+  - name: "AI Assistant"
+    description: "AI-powered commands in chat (/brainstorm, /summarize, /mockup)"
+    group: "Collaboration"
+    user_facing: true
+    underlying_services:
+      - ai-orchestrator-svc
+    position: 3
+
+  - name: "Video Meetings"
+    description: "In-platform video meetings and recording"
+    group: "Collaboration"
+    user_facing: true
+    underlying_services:
+      - meeting-svc
+    position: 4
+
+  # Payments group
+  - name: "Billing & Subscriptions"
+    description: "Premium subscriptions and AI credit purchases"
+    group: "Payments"
+    user_facing: true
+    underlying_services:
+      - billing-svc
+    position: 1
+
+  # Infrastructure group
+  - name: "Push Notifications"
+    description: "Mobile push notifications"
+    group: "Infrastructure"
+    user_facing: true
+    underlying_services:
+      - notification-svc
+      - aws-sns
+    position: 1
+
+  - name: "Media Delivery (CDN)"
+    description: "Profile photos, portfolio media, and file downloads"
+    group: "Infrastructure"
+    user_facing: true
+    underlying_services:
+      - cloudfront
+      - s3
+    position: 2
+
+  - name: "Safety & Moderation"
+    description: "Content moderation and reporting"
+    group: "Infrastructure"
+    user_facing: false  # Internal; only show if materially impacted
+    underlying_services:
+      - moderation-svc
+      - admin-svc
+    position: 3
+
+# ---------------------------------------------------------------------------
+# Uptime Metrics (displayed on status page as response time graph)
+# ---------------------------------------------------------------------------
+metrics:
+  - name: "API Response Time"
+    suffix: "ms"
+    decimal_places: 0
+    display_chart: true
+    tooltip_description: "P95 API Gateway response time"
+
+  - name: "Chat Delivery Rate"
+    suffix: "%"
+    decimal_places: 1
+    display_chart: true
+    tooltip_description: "Percentage of messages delivered successfully"
+
+# ---------------------------------------------------------------------------
+# Incident Communication Templates
+# ---------------------------------------------------------------------------
+incident_templates:
+  investigating:
+    title: "{component} — Investigating"
+    body: |
+      We are investigating reports of {component} issues. Our team has been alerted
+      and is looking into the cause. We will provide an update within 15 minutes.
+
+  identified:
+    title: "{component} — Issue Identified"
+    body: |
+      We have identified the cause of the {component} issue: {brief_description}.
+      We are working on a fix and will deploy it as soon as possible.
+      Our next update will be in 30 minutes or sooner.
+
+  monitoring:
+    title: "{component} — Fix Deployed, Monitoring"
+    body: |
+      A fix has been deployed for the {component} issue. We are monitoring the
+      situation and will confirm full resolution shortly. If you continue to
+      experience issues, please contact support at [brandname].com/support.
+
+  resolved:
+    title: "{component} — Resolved"
+    body: |
+      The issue with {component} has been resolved. All systems are operating
+      normally. We apologize for any disruption this caused.
+      A postmortem will be published within 72 hours for any P1 incidents.
+
+# ---------------------------------------------------------------------------
+# Automation Integration
+# ---------------------------------------------------------------------------
+automation:
+  # PagerDuty integration: auto-create incidents when PD alert fires
+  pagerduty:
+    enabled: true
+    services:
+      - pd_service: "Colab API Gateway"
+        statuspage_component: "API & Authentication"
+      - pd_service: "Colab Chat Service"
+        statuspage_component: "Messaging & Chat"
+      - pd_service: "Colab Billing Service"
+        statuspage_component: "Billing & Subscriptions"
+      - pd_service: "Colab AI Orchestrator"
+        statuspage_component: "AI Assistant"
+      - pd_service: "Colab Media Service"
+        statuspage_component: "File Sharing"
+
+  # AWS CloudWatch integration: auto-update component status on alarm
+  cloudwatch:
+    enabled: true
+    # Configure via Statuspage.io AWS integration (requires IAM role)
+    region: "us-east-1"
+    alarms:
+      - alarm: "colab-prod-gateway-5xx-alarm"
+        component: "API & Authentication"
+        status_on_alarm: "degraded_performance"
+      - alarm: "colab-prod-chat-ws-disconnect-alarm"
+        component: "Messaging & Chat"
+        status_on_alarm: "partial_outage"
+      - alarm: "colab-prod-billing-queue-depth-alarm"
+        component: "Billing & Subscriptions"
+        status_on_alarm: "degraded_performance"

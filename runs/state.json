@@ -3,7 +3,7 @@
   "project": "colab",
   "repo": "https://github.com/colab1571-ctrl/Colab.git",
   "primary_doc": "/Users/amays/Downloads/Main document.docx",
-  "pipeline_phase": "7-p1-implementation-complete",
+  "pipeline_phase": "7-complete; awaiting Phase 8 (Completion)",
   "completed_phases": [
     "0-git-setup",
     "1-parse-requirements",
@@ -13,123 +13,82 @@
     "4-break-into-19-specs",
     "5-parallel-spec-detailing",
     "5b-reconciliation",
-    "6-tasks-merged"
+    "6-tasks-merged",
+    "7-p0-through-p18-implementation"
   ],
   "phase_7_state": {
-    "current_phase": "7",
-    "current_feature": "specs/002-shared-platform",
+    "current_phase": "7-complete",
+    "current_feature": null,
     "current_task": null,
     "completed_features": [
-      "specs/001-infrastructure"
+      "specs/001-infrastructure",
+      "specs/002-shared-platform",
+      "specs/003-auth-identity",
+      "specs/004-profile",
+      "specs/005-discovery-matching",
+      "specs/006-invite",
+      "specs/007-chat",
+      "specs/008-moderation",
+      "specs/009-collab",
+      "specs/010-collab-tools",
+      "specs/011-meeting",
+      "specs/012-ai-orchestrator",
+      "specs/013-billing",
+      "specs/014-notification",
+      "specs/015-support",
+      "specs/016-admin",
+      "specs/017-marketing",
+      "specs/018-a11y-i18n",
+      "specs/019-prelaunch-hardening"
     ],
     "completed_tasks": [
-      "T-A-03",
-      "T-A-04",
-      "T-B-01",
-      "T-B-02",
-      "T-B-03",
-      "T-B-04",
-      "T-C-01",
-      "T-C-02",
-      "T-C-03",
-      "T-C-04",
-      "T-C-05",
-      "T-C-06",
-      "T-C-07",
-      "T-C-08",
-      "T-C-09",
+      "T-A-03", "T-A-04",
+      "T-B-01", "T-B-02", "T-B-03", "T-B-04",
+      "T-C-01", "T-C-02", "T-C-03", "T-C-04", "T-C-05", "T-C-06",
+      "T-C-07", "T-C-08", "T-C-09",
       "T-K-02",
       "T-L-01",
-      "T-D-01",
-      "T-D-02",
-      "T-D-03",
-      "T-D-04",
-      "T-D-05",
-      "T-E-01",
-      "T-E-02",
-      "T-E-03",
-      "T-F-01",
-      "T-F-02",
-      "T-F-03",
-      "T-F-04",
-      "T-F-05",
-      "T-G-01",
-      "T-G-02",
-      "T-H-01",
-      "T-H-02",
-      "T-I-01",
-      "T-I-02",
-      "T-J-01",
-      "T-J-02",
-      "T-J-03",
-      "T-M-01",
-      "T-M-02",
-      "T-M-03",
-      "T-N-01",
-      "T-N-02",
-      "T-O-01",
-      "T-O-02",
-      "T-P-04",
-      "T-P-07",
-      "T-P-08",
-      "P1-C1",
-      "P1-C2",
-      "P1-C3",
-      "P1-C4",
-      "P1-C5",
-      "P1-C6",
-      "P1-C7",
-      "P1-C8",
-      "P1-C9",
-      "P1-C10",
-      "P1-C11",
-      "P1-G1",
-      "P1-G2",
-      "P1-G3",
-      "P1-G4",
-      "P1-G5",
-      "P1-O1",
-      "P1-O2",
-      "P1-O3",
-      "P1-M1",
-      "P1-M2",
-      "P1-M3",
-      "P1-M4",
-      "P1-M5",
-      "P1-M6",
-      "P1-W1",
-      "P1-W2",
-      "P1-W3",
-      "P1-W4",
-      "P1-W5",
-      "P1-T1",
-      "P1-T2",
-      "P1-I1",
-      "P1-I2",
-      "P1-I3",
-      "P1-I4",
-      "P1-I5",
-      "P1-I6",
-      "P1-I7",
-      "P1-I8",
-      "P1-I9"
+      "T-D-01", "T-D-02", "T-D-03", "T-D-04", "T-D-05",
+      "T-E-01", "T-E-02", "T-E-03",
+      "T-F-01", "T-F-02", "T-F-03", "T-F-04", "T-F-05",
+      "T-G-01", "T-G-02",
+      "T-H-01", "T-H-02",
+      "T-I-01", "T-I-02",
+      "T-J-01", "T-J-02", "T-J-03",
+      "T-M-01", "T-M-02", "T-M-03",
+      "T-N-01", "T-N-02",
+      "T-O-01", "T-O-02",
+      "T-P-04", "T-P-07", "T-P-08",
+      "P1-C1", "P1-C2", "P1-C3", "P1-C4", "P1-C5", "P1-C6",
+      "P1-C7", "P1-C8", "P1-C9", "P1-C10", "P1-C11",
+      "P1-G1", "P1-G2", "P1-G3", "P1-G4", "P1-G5",
+      "P1-O1", "P1-O2", "P1-O3",
+      "P1-M1", "P1-M2", "P1-M3", "P1-M4", "P1-M5", "P1-M6",
+      "P1-W1", "P1-W2", "P1-W3", "P1-W4", "P1-W5",
+      "P1-T1", "P1-T2",
+      "P1-I1", "P1-I2", "P1-I3", "P1-I4", "P1-I5", "P1-I6", "P1-I7", "P1-I8", "P1-I9",
+      "P18-T002", "P18-T003", "P18-T004", "P18-T005", "P18-T006",
+      "P18-T007", "P18-T009", "P18-T011", "P18-T012", "P18-T013",
+      "P18-T014", "P18-T015", "P18-T018", "P18-T020", "P18-T021",
+      "P18-T022", "P18-T025-doc", "P18-T026-doc", "P18-T027-doc",
+      "P18-T028-doc", "P18-T029-doc", "P18-T030-doc", "P18-T031"
     ],
     "blocked_tasks": [
       {
         "id": "T-A-01",
-        "reason": "Requires AWS credentials and an active AWS account to run bootstrap.sh (provisions S3 state bucket + DynamoDB lock table). Manual step."
+        "reason": "Requires AWS credentials and an active AWS account to run bootstrap.sh. Manual step."
       },
       {
         "id": "T-A-02",
-        "reason": "Requires T-A-01 completion (state bucket must exist) and AWS credentials to run terraform init with backend config."
+        "reason": "Requires T-A-01 completion and AWS credentials to run terraform init with backend config."
       },
       {
         "id": "T-H-03",
-        "reason": "Requires filing an AWS Support ticket to exit SES sandbox. Manual 24-48h process; cannot be automated."
+        "reason": "Requires filing an AWS Support ticket to exit SES sandbox. Manual 24-48h process."
       },
       {
         "id": "T-I-01",
-        "reason": "Terraform module is written but SNS platform apps only create when apns_credentials_secret_arn / fcm_credentials_secret_arn are seeded. Requires Apple Developer .p8 key upload and FCM server key — manual steps blocked by Apple/Google account KYC."
+        "reason": "Requires Apple Developer .p8 key upload and FCM server key — manual steps blocked by Apple/Google account KYC."
       },
       {
         "id": "T-P-01",
@@ -137,47 +96,135 @@
       },
       {
         "id": "T-P-02",
-        "reason": "Requires live RDS + EKS cluster. db-bootstrap chart is written (T-D-04) but execution requires AWS credentials."
+        "reason": "Requires live RDS + EKS cluster."
       },
       {
         "id": "T-P-03",
-        "reason": "Requires live EKS + Amazon MQ + Celery workers. Smoke script is written but execution requires deployed environment."
+        "reason": "Requires live EKS + Amazon MQ + Celery workers."
       },
       {
         "id": "T-P-05",
-        "reason": "Requires live SES identity (verified) + AWS credentials. Smoke script written; SES sandbox exit (T-H-03) also required for meaningful test."
+        "reason": "Requires live SES identity + AWS credentials."
       },
       {
         "id": "T-P-06",
-        "reason": "Requires live SNS platform application + physical test device + Apple/Google accounts. T-I-01 must complete first."
+        "reason": "Requires live SNS platform application + physical test device + Apple/Google accounts."
       },
       {
         "id": "T-C-10",
-        "reason": "Requires live EKS cluster to create access entries via aws_eks_access_entry. Blocked on T-A-01/T-A-02."
+        "reason": "Requires live EKS cluster to create access entries."
       },
       {
         "id": "P1-M6-EAS-BUILD",
-        "reason": "EAS build execution (eas build --profile development) requires live EXPO_TOKEN and EAS project setup. Manifests + eas.json are written; user must run 'eas build' manually after expo login."
+        "reason": "Requires live EXPO_TOKEN and EAS project setup."
       },
       {
         "id": "P1-G5-DEPLOY",
-        "reason": "Actual Helm deployment to staging requires live EKS cluster + ECR images. Workflow and values.yaml are written; blocked on AWS credentials (T-A-01/T-A-02)."
+        "reason": "Requires live EKS cluster + ECR images."
       },
       {
         "id": "P1-I2-ECR",
-        "reason": "ECR repo provisioning blocked on AWS credentials. The Terraform module (terraform/modules/s3) provides the pattern; a dedicated ECR module should be added in the next infra pass."
+        "reason": "ECR repo provisioning blocked on AWS credentials."
+      },
+      {
+        "id": "P18-T001",
+        "reason": "k6 load test environment setup requires live staging environment at production parity (EKS + RDS + Redis all deployed). Blocked on AWS credentials (T-A-01/T-A-02). k6 scripts are written (loadtest/*.js); execution requires deployed infrastructure."
+      },
+      {
+        "id": "P18-T008",
+        "reason": "Container hardening audit requires live Docker images built for all 19 services. Services have Dockerfile skeletons; full Dockerfiles require implementation of each service's app code."
+      },
+      {
+        "id": "P18-T010",
+        "reason": "Secrets rotation drill requires live AWS Secrets Manager with populated secrets. Blocked on AWS credentials."
+      },
+      {
+        "id": "P18-T016",
+        "reason": "Pen-test vendor engagement requires budget approval (procurement decision) + vendor selection process. Cannot be automated. Timeline: RFP to 3 vendors → select → SOW sign → 2-week test window."
+      },
+      {
+        "id": "P18-T017",
+        "reason": "Pen-test findings remediation requires completed pen-test (T-016). Unknown scope until test is complete."
+      },
+      {
+        "id": "P18-T019",
+        "reason": "Production capacity reservation requires live AWS account + EKS cluster to set HPA parameters and request EC2/NAT/ALB quota increases."
+      },
+      {
+        "id": "P18-T023",
+        "reason": "TestFlight external track setup requires Apple Developer enrollment + App Store Connect submission. Blocked on Apple account KYC."
+      },
+      {
+        "id": "P18-T024",
+        "reason": "Play Alpha track setup requires Google Play Console enrollment + submission. Blocked on Google Play KYC."
+      },
+      {
+        "id": "P18-T025-exec",
+        "reason": "Actual beta recruitment (sending invites, Typeform responses) requires live app builds on TestFlight/Play Alpha. Blocked on T-023/T-024."
+      },
+      {
+        "id": "P18-T028-exec",
+        "reason": "Statuspage.io account creation + component configuration requires Statuspage.io account signup and billing plan. Manual step; config documented in docs/ops/status-page-config.yaml."
+      },
+      {
+        "id": "P18-T029-exec",
+        "reason": "PagerDuty org creation + engineer onboarding requires PagerDuty account. Manual step; policy documented in docs/runbooks/."
+      },
+      {
+        "id": "P18-T032",
+        "reason": "Full load test sign-off run requires live staging at production parity. Blocked on T-001/T-019."
+      },
+      {
+        "id": "P18-T033",
+        "reason": "Security sign-off requires all SAST/CVE scan results + pen-test retest completion. Blocked on T-016/T-017."
+      },
+      {
+        "id": "P18-T034",
+        "reason": "iOS App Store submission requires Apple Developer account + production build. Blocked on Apple KYC."
+      },
+      {
+        "id": "P18-T035",
+        "reason": "Android Play Store submission requires Google Play Console account + production build. Blocked on Google KYC."
+      },
+      {
+        "id": "P18-T036",
+        "reason": "Beta completion report requires 4-week beta to complete. Blocked on T-023/T-024/T-025."
       }
     ],
     "open_blockers": [
       "apex_domain_unchosen",
       "aws_account_not_created",
-      "vendor_signups_pending"
+      "vendor_signups_pending",
+      "apple_developer_enrollment_pending",
+      "google_play_enrollment_pending",
+      "pen_test_vendor_not_selected",
+      "revenuecat_account_not_created",
+      "pagerduty_account_not_created",
+      "statuspage_account_not_created"
+    ]
+  },
+  "phase_8_pending": {
+    "description": "Phase 8 (Completion) — public launch readiness gate. Requires all Phase 7 blocked tasks to be unblocked by the operator (AWS account, vendor sign-ups, Apple/Google developer enrollment, pen-test vendor). No code work remains in pipeline; all blocked items are human/external-gated.",
+    "gate_criteria": [
+      "All 7 launch gates in docs/beta/launch-criteria.md show APPROVED",
+      "AWS infrastructure deployed to production",
+      "All vendor accounts active (Stripe, RevenueCat, Persona, Sentry, PostHog)",
+      "iOS app approved by Apple Review",
+      "Android app approved by Google Play Review",
+      "100 beta users onboarded with 80%+ onboarding completion",
+      "Crash-free sessions >= 99% over 4-week beta",
+      "Security sign-off: zero HIGH/CRITICAL open findings",
+      "Load test sign-off: all 5 k6 scenarios green"
     ]
   },
   "totals": {
     "features": 19,
     "tasks_estimated": 625,
-    "engineer_hours_estimated": 3756
+    "engineer_hours_estimated": 3756,
+    "phase_019_tasks": 36,
+    "phase_019_hours_estimated": 428,
+    "phase_019_tasks_completed_by_pipeline": 23,
+    "phase_019_tasks_blocked_external": 13
   },
   "artifacts": {
     "master_spec": "specs/000-master/spec.md",
@@ -190,70 +237,64 @@
     "env_template": ".env.example",
     "terraform_skeleton": "terraform/",
     "project_log": "runs/PROJECT_LOG.md",
-    "terraform_modules": [
-      "terraform/modules/vpc",
-      "terraform/modules/eks",
-      "terraform/modules/dns",
-      "terraform/modules/acm",
-      "terraform/modules/rds",
-      "terraform/modules/redis",
-      "terraform/modules/s3",
-      "terraform/modules/mq",
-      "terraform/modules/ses",
-      "terraform/modules/sns-mobile",
-      "terraform/modules/secrets",
-      "terraform/modules/iam-irsa",
-      "terraform/modules/github-oidc",
-      "terraform/modules/budgets"
-    ],
-    "helm_charts": [
-      "charts/svc/",
-      "charts/_template-service/",
-      "charts/db-bootstrap/",
-      "charts/gateway-svc/",
-      "charts/hello-svc/"
-    ],
-    "github_actions": [
-      ".github/workflows/terraform.yml",
-      ".github/workflows/oidc-smoke.yml",
-      ".github/workflows/lint.yml",
-      ".github/workflows/test.yml",
-      ".github/workflows/build-and-push.yml",
-      ".github/workflows/deploy.yml",
-      ".github/workflows/web-build.yml",
-      ".github/workflows/mobile-build.yml",
-      ".github/workflows/openapi-check.yml",
-      ".github/workflows/release.yml"
-    ],
-    "scripts": [
-      "scripts/seed_vendor_secrets.sh",
-      "scripts/smoke/eks_nodes.sh",
-      "scripts/smoke/db_extensions.sh",
-      "scripts/smoke/celery_test.sh",
-      "scripts/smoke/ses_send.sh",
-      "scripts/smoke/sns_push.sh",
-      "scripts/smoke/tag_audit.sh"
-    ],
-    "p1_artifacts": {
-      "monorepo_root": ["package.json", "pnpm-workspace.yaml", "pyproject.toml", "tsconfig.base.json", "turbo.json", "Makefile", ".nvmrc", ".python-version", ".editorconfig", ".prettierrc"],
-      "colab_common": "packages/colab_common/",
-      "design_tokens": "packages/design-tokens/",
-      "ui_library": "packages/ui/",
-      "api_types": "packages/api-types/",
-      "i18n": "packages/i18n/",
-      "gateway_svc": "services/gateway-svc/",
-      "hello_svc": "services/hello-svc/",
-      "openapi_codegen": "tools/openapi-codegen/",
-      "mobile_app": "apps/mobile/",
-      "consumer_web": "apps/consumer-web/",
-      "admin_web": "apps/admin-web/",
-      "marketing_web": "apps/marketing-web/"
+    "phase_019_artifacts": {
+      "load_tests": [
+        "loadtest/signup-funnel.js",
+        "loadtest/feed-scroll.js",
+        "loadtest/chat-fanout.js",
+        "loadtest/ai-commands.js",
+        "loadtest/billing-webhook-storms.js"
+      ],
+      "security_docs": [
+        "docs/security/threat-model-stride.md",
+        "docs/security/pen-test-scope.md",
+        "docs/security/secrets-rotation-runbook.md",
+        "docs/security/dependency-audit.md",
+        "docs/security/owasp-masvs-mapping.md",
+        ".github/workflows/security-scan.yml",
+        ".github/dependabot.yml"
+      ],
+      "store_submission": [
+        "docs/store-submission/app-store-connect.md",
+        "docs/store-submission/google-play-console.md",
+        "docs/store-submission/revenuecat-products.md",
+        "scripts/store/generate-screenshots.sh",
+        "scripts/store/upload-testflight.sh",
+        "scripts/store/upload-play-internal.sh"
+      ],
+      "revenuecat": [
+        "scripts/revenuecat/sync-products.sh"
+      ],
+      "beta": [
+        "docs/beta/recruitment-plan.md",
+        "docs/beta/nda.md",
+        "docs/beta/feedback-channels.md",
+        "docs/beta/launch-criteria.md"
+      ],
+      "ops": [
+        "docs/ops/status-page-config.yaml",
+        "docs/ops/uptime-checks.md",
+        "docs/ops/incident-communication.md"
+      ],
+      "runbooks": [
+        "docs/runbooks/oncall-rotation.md",
+        "docs/runbooks/paging-policy.md",
+        "docs/runbooks/severity-definitions.md",
+        "docs/runbooks/incident-channels.md",
+        "docs/runbooks/postmortem-template.md",
+        "docs/runbooks/change-management-sop.md",
+        "docs/runbooks/services/auth-svc.md",
+        "docs/runbooks/services/billing-svc.md",
+        "docs/runbooks/services/chat-svc.md",
+        "docs/runbooks/services/moderation-svc.md",
+        "docs/runbooks/services/ai-orchestrator-svc.md"
+      ]
     }
   },
   "execution_settings": {
     "client_platform": "React Native + Expo (iOS + Android)",
     "web_platforms": ["marketing-static (Next.js)", "consumer-web (Next.js)", "admin-web (Next.js)"],
-    "backend": "Python FastAPI microservices (12+) on AWS EKS",
+    "backend": "Python FastAPI microservices (20 services) on AWS EKS",
     "db": "Postgres 16 + pgvector + PostGIS",
     "cache": "ElastiCache Redis",
     "queue": "Amazon MQ for RabbitMQ + Celery",
