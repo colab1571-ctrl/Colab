@@ -152,29 +152,52 @@ export function SendVibeCheckModal({
   }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="pageSheet">
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      presentationStyle="pageSheet"
+      accessibilityViewIsModal
+      onRequestClose={handleClose}
+    >
       <KeyboardAvoidingView
         className="flex-1 bg-white"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        accessibilityLabel={`Send Vibe Check to ${toDisplayName ?? "this creator"}`}
       >
         <View className="flex-1 px-6 pt-8 pb-8">
           {/* Header */}
           <View className="flex-row items-center justify-between mb-6">
-            <Text className="text-xl font-bold text-neutral-900">Send Vibe Check</Text>
-            <TouchableOpacity onPress={handleClose} testID="modal-close-btn">
+            <Text
+              className="text-xl font-bold text-neutral-900"
+              accessibilityRole="header"
+            >
+              Send Vibe Check
+            </Text>
+            <TouchableOpacity
+              onPress={handleClose}
+              testID="modal-close-btn"
+              accessibilityLabel="Cancel — close this dialog"
+              accessibilityRole="button"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={{ minWidth: 44, minHeight: 44, justifyContent: "center" }}
+            >
               <Text className="text-neutral-500 text-base">Cancel</Text>
             </TouchableOpacity>
           </View>
 
           {toDisplayName && (
-            <Text className="text-sm text-neutral-500 mb-4">
+            <Text className="text-sm text-neutral-500 mb-4" accessibilityLabel={`To: ${toDisplayName}`}>
               To: <Text className="text-neutral-900 font-medium">{toDisplayName}</Text>
             </Text>
           )}
 
           {/* Synopsis input */}
           <View className="flex-1 mb-4">
-            <Text className="text-sm font-medium text-neutral-700 mb-2">
+            <Text
+              className="text-sm font-medium text-neutral-700 mb-2"
+              nativeID="synopsis-label"
+            >
               Tell them why you want to collaborate
             </Text>
             <TextInput
@@ -187,6 +210,9 @@ export function SendVibeCheckModal({
               autoFocus
               testID="synopsis-input"
               textAlignVertical="top"
+              accessibilityLabel="Your message to this creator"
+              accessibilityHint={`Tell ${toDisplayName ?? "them"} why you'd like to collaborate. ${SYNOPSIS_MAX} character maximum.`}
+              accessibilityRequired
             />
           </View>
 
@@ -197,19 +223,29 @@ export function SendVibeCheckModal({
                 isOverLimit ? "text-red-500" : remaining <= 30 ? "text-orange-500" : "text-neutral-400"
               }`}
               testID="char-counter"
+              accessibilityLabel={
+                isOverLimit
+                  ? `Message is ${Math.abs(remaining)} characters over the ${SYNOPSIS_MAX} limit`
+                  : `${remaining} characters remaining`
+              }
+              accessibilityLiveRegion="polite"
             >
               {isOverLimit ? `${Math.abs(remaining)} over limit` : `${remaining} remaining`}
             </Text>
             {isOverLimit && (
-              <Text className="text-xs text-red-400">Max {SYNOPSIS_MAX} characters</Text>
+              <Text className="text-xs text-red-400" importantForAccessibility="no-hide-descendants">
+                Max {SYNOPSIS_MAX} characters
+              </Text>
             )}
           </View>
 
           {/* Error */}
           {errorMessage && (
-            <Text className="text-red-500 text-sm mb-4" testID="error-message">
-              {errorMessage}
-            </Text>
+            <View accessibilityLiveRegion="assertive" accessibilityRole="alert">
+              <Text className="text-red-500 text-sm mb-4" testID="error-message">
+                {errorMessage}
+              </Text>
+            </View>
           )}
 
           {/* Submit */}
@@ -217,12 +253,20 @@ export function SendVibeCheckModal({
             className={`py-4 rounded-2xl items-center ${
               canSubmit ? "bg-brand-primary" : "bg-neutral-200"
             }`}
+            style={{ minHeight: 44 }}
             onPress={handleSubmit}
             disabled={!canSubmit}
             testID="submit-btn"
+            accessibilityLabel={
+              submitState === "loading"
+                ? "Sending Vibe Check, please wait"
+                : `Send Vibe Check to ${toDisplayName ?? "this creator"}`
+            }
+            accessibilityRole="button"
+            accessibilityState={{ busy: submitState === "loading", disabled: !canSubmit }}
           >
             {submitState === "loading" ? (
-              <ActivityIndicator color={canSubmit ? "#fff" : "#999"} />
+              <ActivityIndicator color={canSubmit ? "#fff" : "#999"} accessibilityLabel="Sending" />
             ) : (
               <Text
                 className={`font-bold text-base ${canSubmit ? "text-white" : "text-neutral-400"}`}
