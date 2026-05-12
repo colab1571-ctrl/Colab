@@ -1,0 +1,37 @@
+<mjml>
+  <mj-head>
+    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" />
+      <mj-button background-color="#6c63ff" color="#ffffff" border-radius="8px" font-weight="600" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f4f4f8">
+    <mj-section background-color="#6c63ff" padding="24px 0">
+      <mj-column>
+        <mj-text align="center" font-size="24px" font-weight="700" color="#ffffff">Colab Support</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="40px 24px">
+      <mj-column>
+        <mj-text font-size="16px" font-weight="600" color="#1a1a2e">
+          Re: {{ ticket_subject }}
+        </mj-text>
+        <mj-text color="#555">
+          {{ reply_preview }}
+        </mj-text>
+        <mj-button href="https://app.colab.app/support/tickets/{{ ticket_id }}">
+          View Ticket
+        </mj-button>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#f4f4f8" padding="16px 24px">
+      <mj-column>
+        <mj-text align="center" font-size="12px" color="#888">
+          This is a transactional email related to your support request.
+          <a href="https://app.colab.app/notifications/preferences" style="color:#888;">Manage preferences</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

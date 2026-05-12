@@ -1,0 +1,37 @@
+<mjml>
+  <mj-head>
+    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" />
+      <mj-text font-size="15px" line-height="1.6" color="#1a1a2e" />
+      <mj-button background-color="#6c63ff" color="#ffffff" border-radius="8px" font-weight="600" />
+    </mj-attributes>
+    <mj-style>
+      .footer-link { color: #888; text-decoration: underline; }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#f4f4f8">
+    <!-- Header -->
+    <mj-section background-color="#6c63ff" padding="24px 0">
+      <mj-column>
+        <mj-text align="center" font-size="24px" font-weight="700" color="#ffffff">Colab</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Body content placeholder (child templates inject here) -->
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <mj-section background-color="#f4f4f8" padding="16px 24px">
+      <mj-column>
+        <mj-text align="center" font-size="12px" color="#888888">
+          You received this email because you have an account on Colab.<br />
+          {% if unsubscribe_url %}
+          <a href="{{ unsubscribe_url }}" class="footer-link">Unsubscribe</a> &middot;
+          {% endif %}
+          <a href="https://app.colab.app/notifications/preferences" class="footer-link">Manage preferences</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

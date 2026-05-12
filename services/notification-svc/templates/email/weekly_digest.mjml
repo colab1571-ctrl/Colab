@@ -1,0 +1,60 @@
+<mjml>
+  <mj-head>
+    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" />
+      <mj-button background-color="#6c63ff" color="#ffffff" border-radius="8px" font-weight="600" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f4f4f8">
+    <mj-section background-color="#6c63ff" padding="24px 0">
+      <mj-column>
+        <mj-text align="center" font-size="24px" font-weight="700" color="#ffffff">Colab</mj-text>
+        <mj-text align="center" font-size="14px" color="#e0d9ff">Week in Review — {{ period_start_formatted }}</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#ffffff" padding="32px 24px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="700" color="#1a1a2e" align="center">
+          Here's your week on Colab
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#ffffff" padding="0 24px 24px">
+      <mj-column>
+        <mj-table>
+          <tr style="background:#f0eeff; border-radius:8px;">
+            <td style="padding:12px 16px; font-weight:600; color:#6c63ff;">{{ new_matches }}</td>
+            <td style="padding:12px 16px; color:#555;">New Matches</td>
+          </tr>
+          <tr>
+            <td style="padding:12px 16px; font-weight:600; color:#6c63ff;">{{ messages_exchanged }}</td>
+            <td style="padding:12px 16px; color:#555;">Messages Exchanged</td>
+          </tr>
+          <tr style="background:#f0eeff;">
+            <td style="padding:12px 16px; font-weight:600; color:#6c63ff;">{{ active_collabs }}</td>
+            <td style="padding:12px 16px; color:#555;">Active Collabs</td>
+          </tr>
+          <tr>
+            <td style="padding:12px 16px; font-weight:600; color:#6c63ff;">{{ profile_views }}</td>
+            <td style="padding:12px 16px; color:#555;">Profile Views</td>
+          </tr>
+        </mj-table>
+        <mj-button href="https://app.colab.app/dashboard">
+          View Your Workspace
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#f4f4f8" padding="16px 24px">
+      <mj-column>
+        <mj-text align="center" font-size="12px" color="#888">
+          You opted in to weekly digest emails.
+          <a href="{{ unsubscribe_url | default('https://app.colab.app/notifications/preferences') }}" style="color:#888;">Unsubscribe</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
