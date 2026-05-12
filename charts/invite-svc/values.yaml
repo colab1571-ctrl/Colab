@@ -1,0 +1,118 @@
+# invite-svc Helm values
+# Inherits from charts/svc base chart.
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI; e.g. <account>.dkr.ecr.us-east-1.amazonaws.com/colab/invite-svc
+    tag: "latest"
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+
+  serviceAccount:
+    create: true
+    annotations:
+      # No AWS credentials needed for invite-svc (no S3/KMS/Rekognition)
+      eks.amazonaws.com/role-arn: ""
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+    # Internal service endpoints (resolved via Kubernetes DNS)
+    MODERATION_SVC_URL: "http://moderation-svc:8000"
+    BILLING_SVC_URL: "http://billing-svc:8000"
+    PROFILE_SVC_URL: "http://profile-svc:8000"
+    NOTIFICATION_SVC_URL: "http://notification-svc:8000"
+    # Quota config
+    FREE_INVITE_QUOTA_PER_WEEK: "5"
+    INVITE_TTL_DAYS: "30"
+    SYNOPSIS_MAX_CHARS: "250"
+    SYNOPSIS_FLAG_THRESHOLD: "0.4"
+    MODERATION_TIMEOUT_SECONDS: "0.2"
+    # Idempotency
+    IDEMPOTENCY_TTL_SECONDS: "86400"
+    SEND_DEDUP_WINDOW_SECONDS: "60"
+
+  envFromSecret: "invite-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/invite-svc/env"
+    # Secrets expected in Secrets Manager:
+    # DATABASE_URL, REDIS_URL, RABBITMQ_URL
+    # INTERNAL_SERVICE_SECRET
+    # POSTHOG_API_KEY
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  ingress:
+    enabled: false  # Exposed via API Gateway
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 15
+      periodSeconds: 20
+    readiness:
+      path: /healthz
+      initialDelaySeconds: 10
+      periodSeconds: 10
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+
+# ---------------------------------------------------------------------------
+# Celery worker deployment (invite_ttl queue)
+# ---------------------------------------------------------------------------
+celery:
+  enabled: true
+  replicas: 1
+  queues:
+    - name: invite_ttl
+      concurrency: 2
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# ---------------------------------------------------------------------------
+# Celery Beat scheduler — drives hourly expire_stale_invites task
+# ---------------------------------------------------------------------------
+celeryBeat:
+  enabled: true
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+  # PagerDuty alert if beat hasn't run in 2h (R-003 mitigation)
+  alerting:
+    staleBeatThresholdMinutes: 120
