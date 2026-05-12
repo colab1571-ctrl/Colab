@@ -44,13 +44,11 @@ export function CookieBanner(): React.ReactElement | null {
     const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
     if (!key) return;
     import("posthog-js").then(({ default: posthog }) => {
-      if (!posthog.__loaded) {
-        posthog.init(key, {
-          api_host: host ?? "https://app.posthog.com",
-          capture_pageview: true,
-          loaded: () => {/* loaded */},
-        });
-      }
+      // posthog.init is idempotent — safe to call if already initialised
+      posthog.init(key, {
+        api_host: host ?? "https://app.posthog.com",
+        capture_pageview: true,
+      });
     });
   }
 
