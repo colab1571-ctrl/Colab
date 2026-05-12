@@ -1,0 +1,5 @@
+apiVersion: v2
+name: db-bootstrap
+description: One-shot Kubernetes Job that installs Postgres extensions (postgis, vector) and runs initial DB setup. Run once after RDS is provisioned.
+type: application
+version: 0.1.0

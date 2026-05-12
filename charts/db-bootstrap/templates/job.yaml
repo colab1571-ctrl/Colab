@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-bootstrap
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: db-bootstrap
+    Project: colab
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+        app: db-bootstrap
+        Project: colab
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      restartPolicy: OnFailure
+      containers:
+        - name: db-bootstrap
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+              echo "==> Running db-bootstrap extensions..."
+              psql "$DATABASE_URL" <<'SQL'
+              CREATE EXTENSION IF NOT EXISTS postgis;
+              CREATE EXTENSION IF NOT EXISTS vector;
+              SQL
+              echo "==> Extensions installed successfully."
+              psql "$DATABASE_URL" -c '\dx' | grep -E 'postgis|vector'
+          env:
+            {{- if .Values.databaseUrl }}
+            - name: DATABASE_URL
+              value: {{ .Values.databaseUrl | quote }}
+            {{- else }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.databaseSecretName }}
+                  key: DATABASE_URL
+            {{- end }}

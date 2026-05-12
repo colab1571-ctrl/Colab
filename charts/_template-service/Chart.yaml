@@ -1,0 +1,11 @@
+apiVersion: v2
+name: hello-svc                   # RENAME to your service (e.g. auth-svc)
+description: Colab hello-svc — example service chart consuming the svc base library chart
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+dependencies:
+  - name: svc
+    version: "0.1.0"
+    repository: "file://../../svc"   # Adjust path if chart is nested differently
+    alias: svc

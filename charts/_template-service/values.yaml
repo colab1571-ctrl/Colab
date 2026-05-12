@@ -1,0 +1,52 @@
+# Per-service values that override the svc base chart.
+# Copy this file to charts/<your-svc>/values.yaml and update ALL REQUIRED fields.
+
+svc:
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/colab/hello-svc"  # REQUIRED
+    tag: "latest"
+
+  replicas: 2
+
+  serviceAccount:
+    create: true
+    name: "hello-svc-sa"
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/colab-dev-hello-svc"  # REQUIRED — from iam-irsa module output
+
+  env:
+    LOG_LEVEL: "info"
+
+  envFromSecret: "hello-svc-env"    # Produced by ESO ExternalSecret below
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/dev/hello-svc/env"    # REQUIRED — match your env and service name
+
+  service:
+    port: 8000
+
+  ingress:
+    enabled: false                  # Set true for gateway-svc; keep false for internal services
+    host: "api.colab.example.com"
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 15
+      periodSeconds: 20
+      failureThreshold: 3
+    readiness:
+      path: /ready
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      failureThreshold: 3
+
+  podDisruptionBudget:
+    minAvailable: 1
