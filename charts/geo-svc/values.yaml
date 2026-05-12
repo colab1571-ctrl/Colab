@@ -1,0 +1,76 @@
+# geo-svc Helm values
+# Stateless Mapbox proxy + Redis cache. No database migrations.
+# Inherits from charts/svc base chart.
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI
+    tag: "latest"
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"   # Stateless; minimal memory footprint
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: ""
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+    # Cache TTLs (seconds)
+    GEO_AUTOCOMPLETE_TTL: "86400"   # 24 hours
+    GEO_REVERSE_TTL: "86400"        # 24 hours
+    # Mapbox defaults
+    MAPBOX_AUTOCOMPLETE_LIMIT: "5"
+    MAPBOX_DEFAULT_LANGUAGE: "en"
+    # Mapbox base URL
+    MAPBOX_GEOCODING_BASE_URL: "https://api.mapbox.com/search/geocode/v6"
+
+  envFromSecret: "geo-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/geo-svc/env"
+    # Secrets expected:
+    # REDIS_URL, MAPBOX_SECRET_TOKEN
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  ingress:
+    enabled: false  # Exposed via API Gateway
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 5
+      periodSeconds: 15
+    readiness:
+      path: /healthz
+      initialDelaySeconds: 3
+      periodSeconds: 10
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule

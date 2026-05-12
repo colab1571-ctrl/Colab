@@ -1,0 +1,125 @@
+# matching-svc Helm values
+# Includes: API server + Celery worker + Celery Beat scheduler.
+# Beat and worker are deployed as separate Deployments using extraDeploys.
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI
+    tag: "latest"
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1024Mi"  # pgvector + embedding model overhead
+    limits:
+      cpu: "2000m"
+      memory: "4096Mi"
+
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: ""
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+    # OpenAI model
+    OPENAI_EMBEDDING_MODEL: "text-embedding-3-large"
+    OPENAI_EMBEDDING_DIMENSIONS: "3072"
+    # Ranking
+    RERANK_CHUNK_SIZE: "1000"
+    RERANK_TOP_K: "200"
+    # Celery Beat schedule (override if needed)
+    CELERY_BEAT_NIGHTLY_RERANK_CRON: "0 2 * * *"
+    CELERY_BEAT_RECS_CRON: "0 3 * * *"
+    # Internal service URLs
+    PROFILE_SVC_URL: "http://profile-svc:8000"
+
+  envFromSecret: "matching-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/matching-svc/env"
+    # Secrets expected:
+    # DATABASE_URL, REDIS_URL, RABBITMQ_URL, INTERNAL_SERVICE_SECRET
+    # OPENAI_API_KEY
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  ingress:
+    enabled: false
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 15
+      periodSeconds: 20
+    readiness:
+      path: /healthz
+      initialDelaySeconds: 10
+      periodSeconds: 10
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+
+# ---------------------------------------------------------------------------
+# Celery worker — separate Deployment consuming the matching queue
+# ---------------------------------------------------------------------------
+celeryWorker:
+  enabled: true
+  replicaCount: 3
+  concurrency: 4
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1024Mi"
+    limits:
+      cpu: "2000m"
+      memory: "4096Mi"
+  command:
+    - "celery"
+    - "-A"
+    - "app.workers.celery_app"
+    - "worker"
+    - "--loglevel=INFO"
+    - "--concurrency=4"
+    - "--queues=matching"
+
+# ---------------------------------------------------------------------------
+# Celery Beat — singleton scheduler Deployment (1 replica always)
+# Beat triggers nightly_rerank (02:00 UTC) and recommendation_set_gen (03:00 UTC)
+# ---------------------------------------------------------------------------
+celeryBeat:
+  enabled: true
+  replicaCount: 1  # MUST be singleton — Beat scheduler must not run multiple instances
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  command:
+    - "celery"
+    - "-A"
+    - "app.workers.celery_app"
+    - "beat"
+    - "--loglevel=INFO"
+    - "--scheduler=celery.beat:PersistentScheduler"

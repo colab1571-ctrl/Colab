@@ -1,0 +1,10 @@
+apiVersion: v2
+name: geo-svc
+description: Colab geo-svc — Mapbox proxy, reverse geocode, PostGIS radius helper, locale unit conversion
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+dependencies:
+  - name: svc
+    version: "*"
+    repository: "file://../../charts/svc"

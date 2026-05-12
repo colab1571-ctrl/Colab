@@ -3,6 +3,7 @@ import React from "react";
 import { Text } from "react-native";
 import { HomeScreen } from "../screens/home/HomeScreen";
 import { PlaceholderScreen } from "../screens/PlaceholderScreen";
+import { FeedScreen } from "../screens/discovery/FeedScreen";
 
 export type MainTabsParamList = {
   Home: undefined;
@@ -38,7 +39,7 @@ export function MainTabs(): React.ReactElement {
       />
       <Tab.Screen
         name="Discover"
-        component={PlaceholderScreen}
+        component={FeedScreen}
         options={{ tabBarLabel: "Discover" }}
       />
       <Tab.Screen
