@@ -40,7 +40,7 @@ class User(Base):
     email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True, index=True)
     email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     email_status: Mapped[str] = mapped_column(
-        Enum("active", "bounced", "complained", name="email_status_enum"),
+        Enum("active", "bounced", "complained", name="email_status_enum", create_type=False),
         default="active",
         nullable=False,
     )
@@ -95,7 +95,7 @@ class Identity(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     provider: Mapped[str] = mapped_column(
-        Enum("apple", "google", "email", "phone", name="identity_provider_enum"), nullable=False
+        Enum("apple", "google", "email", "phone", name="identity_provider_enum", create_type=False), nullable=False
     )
     provider_subject: Mapped[str] = mapped_column(String(512), nullable=False)
     linked_at: Mapped[datetime] = mapped_column(
@@ -148,7 +148,7 @@ class LegalAcceptance(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     doc_type: Mapped[str] = mapped_column(
-        Enum("tos", "privacy", "community_guidelines", name="doc_type_enum"), nullable=False
+        Enum("tos", "privacy", "community_guidelines", name="doc_type_enum", create_type=False), nullable=False
     )
     doc_version: Mapped[str] = mapped_column(String(32), nullable=False)
     accepted_at: Mapped[datetime] = mapped_column(
@@ -182,6 +182,7 @@ class MagicLink(Base):
             "email_change",
             "phone_change",
             name="magic_link_purpose_enum",
+            create_type=False,
         ),
         nullable=False,
     )

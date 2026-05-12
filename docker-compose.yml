@@ -19,7 +19,10 @@ services:
   # ---------------------------------------------------------------------------
 
   postgres:
-    image: pgvector/pgvector:pg16
+    build:
+      context: ./docker/postgres-colab
+      dockerfile: Dockerfile
+    image: colab/postgres:pg16-vector-postgis
     <<: *service-defaults
     environment:
       POSTGRES_USER: colab
