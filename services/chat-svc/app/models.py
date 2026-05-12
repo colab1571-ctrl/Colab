@@ -17,6 +17,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -131,11 +132,7 @@ class ChatMessage(Base):
     client_nonce: uuid.UUID | None = Column(UUID(as_uuid=True), nullable=True)
     edited_at: datetime | None = Column(DateTime(timezone=True), nullable=True)
     deleted_at: datetime | None = Column(DateTime(timezone=True), nullable=True)
-    moderation_score: float | None = Column(
-        # Stored as REAL in PG
-        Column("moderation_score", nullable=True).type if False else None,  # type: ignore[arg-type]
-        nullable=True,
-    )
+    moderation_score: float | None = Column(Float, nullable=True)
     moderation_status: str = Column(
         ModerationStatusEnum, nullable=False, default="pending"
     )
