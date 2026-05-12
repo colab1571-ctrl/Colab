@@ -1,0 +1,65 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Colab Hello Service",
+    "version": "0.1.0",
+    "description": "Sample service proving the gateway pattern end-to-end."
+  },
+  "paths": {
+    "/hello": {
+      "get": {
+        "operationId": "hello",
+        "summary": "Hello endpoint",
+        "tags": ["hello"],
+        "responses": {
+          "200": {
+            "description": "Hello response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HelloResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "operationId": "healthz",
+        "summary": "Liveness probe",
+        "tags": ["health"],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HelloResponse": {
+        "type": "object",
+        "properties": {
+          "msg": { "type": "string", "example": "Hello, Colab" },
+          "env": { "type": "string", "example": "local" },
+          "request_id": { "type": "string" },
+          "secret_present": { "type": "boolean" }
+        },
+        "required": ["msg", "env", "request_id", "secret_present"]
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "ok" }
+        },
+        "required": ["status"]
+      }
+    }
+  }
+}

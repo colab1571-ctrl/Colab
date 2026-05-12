@@ -1,0 +1,10 @@
+# Generated files are committed for deterministic builds.
+# Do NOT add *.ts to this ignore file.
+# Re-generate with: make openapi
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Allow all generated TS files
+!**/*.ts
+!**/*.json
