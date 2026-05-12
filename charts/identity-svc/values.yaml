@@ -1,0 +1,65 @@
+# identity-svc Helm values
+# Inherits from charts/svc base chart.
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI
+    tag: "latest"
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: ""
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+    AWS_REGION: "us-east-1"
+    PERSONA_TEMPLATE_ID: ""  # Set in secrets manager
+
+  envFromSecret: "identity-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/identity-svc/env"
+    # Secrets expected:
+    # DATABASE_URL, REDIS_URL, RABBITMQ_URL,
+    # PERSONA_API_KEY, PERSONA_TEMPLATE_ID, PERSONA_WEBHOOK_SECRET
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  ingress:
+    enabled: false
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 10
+      periodSeconds: 15
+    readiness:
+      path: /healthz
+      initialDelaySeconds: 5
+      periodSeconds: 10
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1

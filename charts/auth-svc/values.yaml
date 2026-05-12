@@ -1,0 +1,80 @@
+# auth-svc Helm values
+# Inherits from charts/svc base chart.
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI; e.g. <account>.dkr.ecr.us-east-1.amazonaws.com/colab/auth-svc
+    tag: "latest"
+
+  replicas: 2  # 99.95% availability target — minimum 2 replicas
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"   # argon2id semaphore-8 * 64MB = 512MB floor
+    limits:
+      cpu: "1000m"
+      memory: "2048Mi"  # argon2id headroom; 8 concurrent hashes * 64MB + overhead
+
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: ""  # Set by CI to the IRSA role ARN
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+    SNS_ENABLED: "true"
+    SES_ENABLED: "true"
+    # KMS key alias for RS256 JWT signing
+    AUTH_KID: "colab-auth-key-1"
+    # AWS region for KMS/SNS/SES calls
+    AWS_REGION: "us-east-1"
+    # Auth domain for magic links
+    APP_DOMAIN: "app.colab.com"
+
+  envFromSecret: "auth-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/auth-svc/env"
+    # Secrets expected in Secrets Manager:
+    # DATABASE_URL, REDIS_URL, RABBITMQ_URL,
+    # APPLE_SIGN_IN_CLIENT_ID,
+    # GOOGLE_CLIENT_ID_IOS, GOOGLE_CLIENT_ID_ANDROID, GOOGLE_CLIENT_ID_WEB,
+    # AUTH_PRIVATE_KEY_PATH (path to mounted RSA PEM for dev; KMS alias for prod)
+    # JWT_SECRET (HS256 fallback for service-to-service — remove in P3)
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  ingress:
+    enabled: false  # Exposed via API Gateway, not direct ingress
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 75
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 10
+      periodSeconds: 15
+    readiness:
+      path: /healthz
+      initialDelaySeconds: 5
+      periodSeconds: 10
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
