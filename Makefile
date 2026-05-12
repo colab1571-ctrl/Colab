@@ -1,4 +1,5 @@
-.PHONY: bootstrap lint test openapi openapi-check build deploy clean help
+.PHONY: bootstrap lint test openapi openapi-check build deploy clean help \
+        infra-up infra-down migrate services-up demo-smoke
 
 # =============================================================================
 # Colab Monorepo Makefile
@@ -65,6 +66,27 @@ deploy: ## Deploy all services via Helm (env=staging|prod required)
 	@if [ -z "$(env)" ]; then echo "Usage: make deploy env=staging"; exit 1; fi
 	@echo "→ Deploying to $(env)..."
 	./scripts/deploy.sh $(env)
+
+# ---------------------------------------------------------------------------
+# Stage 2 — Docker Compose targets
+# ---------------------------------------------------------------------------
+infra-up: ## Bring up infra (postgres, redis, rabbitmq, localstack)
+	docker compose up -d postgres redis rabbitmq localstack
+
+infra-down: ## Tear down all Stage 2 containers + volumes
+	docker compose down -v
+
+migrate: ## Run all service migrations (requires infra-up)
+	docker compose up --exit-code-from migrate-auth migrate-auth
+	docker compose up --exit-code-from migrate-profile migrate-profile
+	docker compose up --exit-code-from migrate-discovery migrate-discovery
+	docker compose up --exit-code-from migrate-gateway migrate-gateway
+
+services-up: ## Bring up gateway, auth, profile, discovery
+	docker compose up -d auth-svc profile-svc discovery-svc gateway-svc
+
+demo-smoke: ## Run the signup smoke test against localhost:8000
+	bash scripts/smoke/demo_signup.sh
 
 # ---------------------------------------------------------------------------
 clean: ## Remove all build artifacts
