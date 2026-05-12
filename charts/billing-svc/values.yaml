@@ -1,0 +1,120 @@
+# billing-svc Helm values
+# Inherits from charts/svc base chart.
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI; e.g. <account>.dkr.ecr.us-east-1.amazonaws.com/colab/billing-svc
+    tag: "latest"
+
+  replicas: 2  # ≥2 for HA — money-critical service
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: ""  # Set by CI to IRSA role ARN
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+    AWS_REGION: "us-east-1"
+    APP_DOMAIN: "app.colab.com"
+    # Stripe API version — MUST match Stripe Dashboard webhook endpoint version
+    STRIPE_API_VERSION: "2025-10-29"
+    # Redis cache for entitlements (TTL 1h, event-invalidated)
+    REDIS_URL: "redis://redis-master:6379/1"
+    # RabbitMQ for event publishing
+    AMQP_URL: "amqp://rabbitmq:5672/"
+
+  envFromSecret: "billing-svc-env"
+  # Secret keys expected:
+  #   STRIPE_SECRET_KEY          — Stripe API secret (sk_live_xxx or sk_test_xxx)
+  #   STRIPE_WEBHOOK_SECRET      — Stripe webhook signing secret (whsec_xxx)
+  #   REVENUECAT_API_KEY         — RevenueCat REST API key (server-to-server)
+  #   REVENUECAT_WEBHOOK_SECRET  — RC static bearer token for webhook auth
+  #   DATABASE_URL               — PostgreSQL connection string
+  #   JWT_SECRET                 — HS256 shared secret for service tokens
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRefs:
+      STRIPE_SECRET_KEY:
+        key: "colab/billing-svc/stripe"
+        property: "secret_key"
+      STRIPE_WEBHOOK_SECRET:
+        key: "colab/billing-svc/stripe"
+        property: "webhook_secret"
+      REVENUECAT_API_KEY:
+        key: "colab/billing-svc/revenuecat"
+        property: "api_key"
+      REVENUECAT_WEBHOOK_SECRET:
+        key: "colab/billing-svc/revenuecat"
+        property: "webhook_secret"
+      DATABASE_URL:
+        key: "colab/billing-svc/db"
+        property: "url"
+      JWT_SECRET:
+        key: "colab/shared/jwt"
+        property: "secret"
+
+  # Webhook endpoint — exposed via gateway-svc path routing
+  # POST /webhooks/stripe must be excluded from IdempotencyMiddleware (raw body needed)
+  ingress:
+    enabled: false  # Handled by gateway-svc
+
+  # Celery Beat for dunning + stale-reservation sweep
+  celeryBeat:
+    enabled: true
+    schedule:
+      dunning_tick:
+        task: "app.workers.celery_tasks.dunning_tick"
+        schedule: "*/10 * * * *"  # Every 10 minutes
+      release_stale_reservations:
+        task: "app.workers.celery_tasks.release_stale_reservations"
+        schedule: "*/5 * * * *"   # Every 5 minutes
+      wallet_reconciliation:
+        task: "app.workers.celery_tasks.wallet_reconciliation"
+        schedule: "0 2 * * *"     # Nightly at 02:00 UTC
+
+  # PodDisruptionBudget — never take down all replicas during a deploy
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  # Money-critical: use RollingUpdate with maxUnavailable=0
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+
+  # Liveness / readiness
+  probes:
+    liveness:
+      httpGet:
+        path: /healthz
+        port: 8000
+      initialDelaySeconds: 15
+      periodSeconds: 20
+    readiness:
+      httpGet:
+        path: /healthz
+        port: 8000
+      initialDelaySeconds: 5
+      periodSeconds: 10
+
+  # HPA — billing reads are cacheable but webhook spikes need auto-scale
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
