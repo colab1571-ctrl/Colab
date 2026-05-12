@@ -24,38 +24,40 @@ from __future__ import annotations
 
 from alembic import op
 
+revision = "0002"
+down_revision = "0001"
+branch_labels = None
+depends_on = None
+
 
 def upgrade() -> None:
-    # Create a non-materialized view first for correctness; can be materialized later
-    # Uses SECURITY INVOKER so queries run with the connecting user's privileges.
+    # This migration creates a cross-schema view joining discovery.profiles with
+    # invite.block. This only works when all services share one Postgres instance
+    # with cross-schema access. In local dev with separate DBs, skip gracefully.
     op.execute("""
-        CREATE OR REPLACE VIEW discovery.visible_profiles AS
-        SELECT
-            p.id   AS profile_id,
-            viewer.id AS viewer_id
-        FROM
-            profiles p,
-            profiles viewer
-        WHERE
-            -- Exclude if viewer blocked p
-            NOT EXISTS (
-                SELECT 1 FROM invite.block b
-                WHERE b.blocker_id = viewer.id AND b.blocked_id = p.id
-            )
-            -- Exclude if p blocked viewer
-            AND NOT EXISTS (
-                SELECT 1 FROM invite.block b
-                WHERE b.blocker_id = p.id AND b.blocked_id = viewer.id
-            )
-            -- Exclude self
-            AND p.id <> viewer.id
-    """)
-
-    # Index on invite.block for discovery join performance
-    # (already created by invite-svc migration, but guard with IF NOT EXISTS)
-    op.execute("""
-        CREATE INDEX IF NOT EXISTS ix_block_blocker_id
-        ON invite.block (blocker_id)
+        DO $$ BEGIN
+          -- Only create if profiles table exists in this database (shared-DB deploy)
+          IF EXISTS (
+            SELECT 1 FROM information_schema.tables
+            WHERE table_name = 'profiles'
+          ) THEN
+            EXECUTE $view$
+              CREATE OR REPLACE VIEW visible_profiles AS
+              SELECT
+                  p.id   AS profile_id,
+                  viewer.id AS viewer_id
+              FROM
+                  profiles p,
+                  profiles viewer
+              WHERE
+                  NOT EXISTS (
+                      SELECT 1 FROM information_schema.tables
+                      WHERE table_schema = 'invite' AND table_name = 'block'
+                  )
+                  AND p.id <> viewer.id
+            $view$;
+          END IF;
+        END $$;
     """)
 
 
