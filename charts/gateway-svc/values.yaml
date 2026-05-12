@@ -1,0 +1,71 @@
+# gateway-svc Helm values
+# Inherits from charts/svc base chart.
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI: <account>.dkr.ecr.us-east-1.amazonaws.com/colab/gateway-svc
+    tag: "latest"
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: ""  # Injected by Terraform output
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+    GIT_SHA: "latest"
+    # Upstream service URLs (Kubernetes cluster DNS)
+    UPSTREAM_HELLO_URL: "http://hello-svc.default.svc.cluster.local:8000"
+    UPSTREAM_AUTH_URL: "http://auth-svc.default.svc.cluster.local:8000"
+    UPSTREAM_PROFILE_URL: "http://profile-svc.default.svc.cluster.local:8000"
+
+  envFromSecret: "gateway-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/gateway-svc/env"
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  ingress:
+    enabled: true
+    className: "alb"
+    host: "api.colab.app"
+    annotations:
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+      alb.ingress.kubernetes.io/group.name: "colab"
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 20
+    targetCPUUtilization: 70
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 15
+      periodSeconds: 20
+      failureThreshold: 3
+    readiness:
+      path: /ready
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      failureThreshold: 3
