@@ -1,0 +1,299 @@
+version: 2
+
+updates:
+  # ---------------------------------------------------------------------------
+  # Python services — one entry per service
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "pip"
+    directory: "/services/auth-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    groups:
+      auth-svc-production:
+        dependency-type: "production"
+      auth-svc-dev:
+        dependency-type: "development"
+    labels: ["dependencies", "python", "auth-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/billing-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      billing-svc-production:
+        dependency-type: "production"
+    labels: ["dependencies", "python", "billing-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/chat-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "chat-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/moderation-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "moderation-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/media-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "media-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/ai-orchestrator-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "ai-orchestrator-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/profile-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "profile-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/identity-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "identity-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/discovery-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "discovery-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/matching-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "matching-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/invite-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "invite-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/collab-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "collab-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/notification-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "notification-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/analytics-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "analytics-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/admin-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "admin-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/support-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "support-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/geo-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "geo-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/meeting-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "meeting-svc"]
+
+  - package-ecosystem: "pip"
+    directory: "/services/gateway-svc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python", "gateway-svc"]
+
+  # ---------------------------------------------------------------------------
+  # npm — Next.js apps
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/apps/consumer-web"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    open-pull-requests-limit: 5
+    groups:
+      consumer-web-deps:
+        patterns: ["*"]
+    labels: ["dependencies", "npm", "consumer-web"]
+
+  - package-ecosystem: "npm"
+    directory: "/apps/marketing-web"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "npm", "marketing-web"]
+
+  - package-ecosystem: "npm"
+    directory: "/apps/admin-web"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "npm", "admin-web"]
+
+  # ---------------------------------------------------------------------------
+  # npm — React Native / Expo
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/apps/mobile"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    open-pull-requests-limit: 5
+    groups:
+      mobile-expo:
+        patterns: ["expo*", "@expo/*"]
+      mobile-react-native:
+        patterns: ["react-native*", "@react-native*"]
+      mobile-other:
+        exclude-patterns: ["expo*", "@expo/*", "react-native*", "@react-native*"]
+    labels: ["dependencies", "npm", "mobile"]
+
+  # ---------------------------------------------------------------------------
+  # npm — shared packages
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/packages/ui"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "npm", "ui-lib"]
+
+  - package-ecosystem: "npm"
+    directory: "/packages/design-tokens"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "npm", "design-tokens"]
+
+  - package-ecosystem: "npm"
+    directory: "/packages/api-types"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "npm", "api-types"]
+
+  - package-ecosystem: "npm"
+    directory: "/packages/i18n"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "npm", "i18n"]
+
+  # ---------------------------------------------------------------------------
+  # Docker base images — all Dockerfiles
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "docker"
+    directory: "/services/auth-svc"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    open-pull-requests-limit: 2
+    labels: ["dependencies", "docker", "auth-svc"]
+
+  - package-ecosystem: "docker"
+    directory: "/services/billing-svc"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    open-pull-requests-limit: 2
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/services/chat-svc"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    open-pull-requests-limit: 2
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/services/gateway-svc"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    open-pull-requests-limit: 2
+    labels: ["dependencies", "docker"]
+
+  # ---------------------------------------------------------------------------
+  # GitHub Actions — workflow action version pins
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    open-pull-requests-limit: 10
+    groups:
+      github-actions:
+        patterns: ["*"]
+    labels: ["dependencies", "github-actions"]
