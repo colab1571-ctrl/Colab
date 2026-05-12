@@ -60,7 +60,7 @@ async function FlagTable({
 }
 
 export default async function FlagsPage(): Promise<React.ReactElement> {
-  const session = requireRole(["mod", "support", "billing_admin", "super_admin"]);
+  const session = await requireRole(["mod", "support", "billing_admin", "super_admin"]);
   const isSuperAdmin = session.roles.includes("super_admin");
 
   return (

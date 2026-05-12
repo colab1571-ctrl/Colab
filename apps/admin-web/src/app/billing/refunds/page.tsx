@@ -43,7 +43,7 @@ async function RefundQueue({ userId, roles }: { userId: string; roles: string[] 
             <form
               action={async (formData: FormData) => {
                 "use server";
-                const session = requireRole(["billing_admin", "super_admin"]);
+                const session = await requireRole(["billing_admin", "super_admin"]);
                 await decideRefund(
                   r.id,
                   { decision: "approve", reason: formData.get("reason") as string },
@@ -63,7 +63,7 @@ async function RefundQueue({ userId, roles }: { userId: string; roles: string[] 
             <form
               action={async (formData: FormData) => {
                 "use server";
-                const session = requireRole(["billing_admin", "super_admin"]);
+                const session = await requireRole(["billing_admin", "super_admin"]);
                 await decideRefund(
                   r.id,
                   { decision: "deny", reason: formData.get("reason") as string },
@@ -87,7 +87,7 @@ async function RefundQueue({ userId, roles }: { userId: string; roles: string[] 
 }
 
 export default async function RefundsPage(): Promise<React.ReactElement> {
-  const session = requireRole(["billing_admin", "super_admin"]);
+  const session = await requireRole(["billing_admin", "super_admin"]);
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Refund Decisions</h1>

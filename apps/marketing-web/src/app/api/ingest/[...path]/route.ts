@@ -41,7 +41,9 @@ async function proxyToPostHog(
     const response = await fetch(targetUrl, {
       method: req.method,
       headers,
-      body: req.method !== "GET" && req.method !== "HEAD" ? req.body : undefined,
+      ...(req.method !== "GET" && req.method !== "HEAD" && req.body != null
+        ? { body: req.body }
+        : {}),
     });
 
     return new Response(response.body, {

@@ -2,7 +2,7 @@
   "color": {
     "brand": {
       "primary": { "value": "#5B5BD6", "type": "color", "a11y": { "contrast_on_white": 4.6 } },
-      "secondary": { "value": "#FFB454", "type": "color", "a11y": { "contrast_on_white": 2.8 } },
+      "secondary": { "value": "#A55E00", "type": "color", "a11y": { "contrast_on_white": 5.0 } },
       "accent": { "value": "#E54D2E", "type": "color", "a11y": { "contrast_on_white": 4.5 } }
     },
     "neutral": {

@@ -6,13 +6,15 @@
     "moduleResolution": "bundler",
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+    "noUncheckedIndexedAccess": false,
     "composite": false,
     "incremental": false,
+    "types": ["node", "jest", "@testing-library/jest-native"],
     "paths": {
       "@colab/api-types/*": ["../../packages/api-types/*"],
       "@colab/i18n": ["../../packages/i18n/src/loader.ts"]
     }
   },
-  "include": ["src", "app.config.ts", "babel.config.js"],
+  "include": ["src", "src/__tests__", "app.config.ts", "babel.config.js"],
   "exclude": ["node_modules"]
 }

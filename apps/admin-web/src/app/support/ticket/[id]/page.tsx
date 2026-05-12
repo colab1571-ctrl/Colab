@@ -47,7 +47,7 @@ async function TicketDetail({ id, userId, roles }: { id: string; userId: string;
             <form
               action={async (formData: FormData) => {
                 "use server";
-                const session = requireRole(["support", "super_admin"]);
+                const session = await requireRole(["support", "super_admin"]);
                 const body = formData.get("body") as string;
                 await replyToTicket(id, body, session.userId, session.roles);
                 revalidatePath(`/support/ticket/${id}`);
@@ -92,7 +92,7 @@ async function TicketDetail({ id, userId, roles }: { id: string; userId: string;
           <div className="space-y-2">
             <form action={async () => {
               "use server";
-              const session = requireRole(["support", "super_admin"]);
+              await requireRole(["support", "super_admin"]);
               // escalate
               revalidatePath(`/support/ticket/${id}`);
             }}>
@@ -102,7 +102,7 @@ async function TicketDetail({ id, userId, roles }: { id: string; userId: string;
             </form>
             <form action={async () => {
               "use server";
-              const session = requireRole(["support", "super_admin"]);
+              await requireRole(["support", "super_admin"]);
               // resolve
               revalidatePath(`/support/ticket/${id}`);
             }}>
@@ -118,7 +118,7 @@ async function TicketDetail({ id, userId, roles }: { id: string; userId: string;
 }
 
 export default async function TicketDetailPage({ params }: Props): Promise<React.ReactElement> {
-  const session = requireRole(["support", "super_admin"]);
+  const session = await requireRole(["support", "super_admin"]);
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-6">

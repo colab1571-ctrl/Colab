@@ -69,7 +69,7 @@ async function TierEditor({
 }
 
 export default async function BillingTiersPage(): Promise<React.ReactElement> {
-  const session = requireRole(["billing_admin", "super_admin"]);
+  const session = await requireRole(["billing_admin", "super_admin"]);
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Tier Entitlements</h1>

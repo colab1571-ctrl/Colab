@@ -8,6 +8,8 @@
     "plugins": [{ "name": "next" }],
     "composite": false,
     "incremental": false,
+    "baseUrl": ".",
+    "noUncheckedIndexedAccess": false,
     "paths": {
       "@/*": ["./src/*"],
       "@colab/ui": ["../../packages/ui/src/index.ts"]

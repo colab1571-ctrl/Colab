@@ -79,9 +79,11 @@ I18nManager.forceRTL(false);
 
 // --- Initial locale from device ---
 function resolveDeviceLocale(): SupportedLocale {
-  const best = RNLocalize.findBestAvailableLanguage(
-    SUPPORTED_LOCALES as unknown as string[]
-  );
+  // react-native-localize v3 uses findBestLanguageTag (renamed from findBestAvailableLanguage)
+  const findFn =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (RNLocalize as any).findBestLanguageTag ?? (RNLocalize as any).findBestAvailableLanguage;
+  const best = findFn?.(SUPPORTED_LOCALES as unknown as string[]);
   return (best?.languageTag as SupportedLocale | undefined) ?? "en";
 }
 
@@ -95,16 +97,21 @@ AsyncStorage.getItem(LOCALE_STORAGE_KEY).then((saved) => {
 });
 
 // --- Update on device locale change (user changes language in iOS/Android settings) ---
-RNLocalize.addEventListener("change", () => {
-  // Respect saved user preference over device locale if set
-  AsyncStorage.getItem(LOCALE_STORAGE_KEY).then((saved) => {
-    if (saved && (SUPPORTED_LOCALES as readonly string[]).includes(saved)) {
-      i18n.locale = saved as SupportedLocale;
-    } else {
-      i18n.locale = resolveDeviceLocale();
-    }
+// react-native-localize v3 removed addEventListener; use useLocalize hook in components instead.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const addLocalizeListener = (RNLocalize as any).addEventListener;
+if (typeof addLocalizeListener === "function") {
+  addLocalizeListener("change", () => {
+    // Respect saved user preference over device locale if set
+    AsyncStorage.getItem(LOCALE_STORAGE_KEY).then((saved) => {
+      if (saved && (SUPPORTED_LOCALES as readonly string[]).includes(saved)) {
+        i18n.locale = saved as SupportedLocale;
+      } else {
+        i18n.locale = resolveDeviceLocale();
+      }
+    });
   });
-});
+}
 
 /**
  * Persist user locale selection and update i18n.locale immediately.
