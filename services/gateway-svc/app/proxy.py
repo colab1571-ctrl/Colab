@@ -73,9 +73,18 @@ async def proxy_request(request: Request) -> FastAPIResponse:
             media_type="application/json",
         )
 
-    # Build upstream URL
+    # Build upstream URL — rewrite path using the route's upstream_prefix.
+    # e.g. /v1/auth/signup/email → (prefix=/v1/auth, upstream_prefix=/auth) → /auth/signup/email
+    # If no upstream_prefix is set, strip leading /v1 segment.
+    suffix = path[len(route.prefix):]  # part after the matched prefix
+    if route.upstream_prefix is not None:
+        upstream_path = route.upstream_prefix + suffix
+    elif path.startswith("/v1/"):
+        upstream_path = path[3:]  # strip "/v1" → keeps leading slash
+    else:
+        upstream_path = path
     query = str(request.url.query)
-    upstream_url = f"{upstream_base}{path}" + (f"?{query}" if query else "")
+    upstream_url = f"{upstream_base}{upstream_path}" + (f"?{query}" if query else "")
 
     # Forward headers (minus hop-by-hop + host)
     forward_headers: dict[str, str] = {}

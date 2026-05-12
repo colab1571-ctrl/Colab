@@ -1,6 +1,12 @@
 """
 Declarative routing table for gateway-svc.
 Each entry maps a URL prefix to an upstream service name + auth/rate-limit policy.
+
+upstream_prefix: the path prefix the upstream service actually expects.
+  e.g. gateway receives /v1/auth/signup/email
+       upstream_prefix="/auth" → upstream gets /auth/signup/email
+  If upstream_prefix is None, defaults to stripping the leading /v1 segment
+  so /v1/... → /...
 """
 from __future__ import annotations
 
@@ -16,19 +22,33 @@ class RoutePolicy:
     rate_limit: tuple[int, float] | None = None
     # Paths under this prefix that are public (no auth)
     public_paths: list[str] = field(default_factory=list)
+    # The path prefix the upstream service expects. Replaces `prefix` in forwarded path.
+    # None = just strip the leading /v1 segment.
+    upstream_prefix: str | None = None
 
 
 ROUTES: list[RoutePolicy] = [
     RoutePolicy(
         prefix="/v1/auth",
         upstream="auth",
-        auth_required=False,  # auth-svc handles its own auth
+        upstream_prefix="/auth",      # auth-svc uses /auth/signup/..., /auth/login/...
+        auth_required=False,           # auth-svc handles its own auth
         public_paths=["/v1/auth/sign-in", "/v1/auth/sign-up", "/v1/auth/verify", "/v1/auth/refresh"],
-        rate_limit=(10, 10 / 60),  # 10/min per IP
+        rate_limit=(10, 10 / 60),      # 10/min per IP
     ),
-    RoutePolicy(prefix="/v1/profile",    upstream="profile",      rate_limit=(60, 1.0)),
+    RoutePolicy(
+        prefix="/v1/profile",
+        upstream="profile",
+        upstream_prefix="/api/v1/profile",  # profile-svc uses /api/v1/profile/...
+        rate_limit=(60, 1.0),
+    ),
     RoutePolicy(prefix="/v1/identity",   upstream="identity",     rate_limit=(30, 0.5)),
-    RoutePolicy(prefix="/v1/feed",       upstream="discovery",    rate_limit=(120, 2.0)),
+    RoutePolicy(
+        prefix="/v1/feed",
+        upstream="discovery",
+        upstream_prefix="/feed",       # discovery-svc uses /feed
+        rate_limit=(120, 2.0),
+    ),
     RoutePolicy(prefix="/v1/match",      upstream="matching",     rate_limit=(60, 1.0)),
     RoutePolicy(prefix="/v1/invite",     upstream="invite",       rate_limit=(60, 1.0)),
     RoutePolicy(prefix="/v1/collab",     upstream="collab",       rate_limit=(60, 1.0)),
