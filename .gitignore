@@ -64,3 +64,6 @@ mockup-cache/
 *secret*
 *credentials*
 !.env.example
+# Allow the Terraform secrets module (IaC skeleton only — no real secrets stored)
+!terraform/modules/secrets/
+!terraform/modules/secrets/**
