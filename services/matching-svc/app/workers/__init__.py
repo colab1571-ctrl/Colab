@@ -1,0 +1,1 @@
+"""matching-svc Celery workers."""
