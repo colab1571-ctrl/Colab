@@ -1,0 +1,10 @@
+apiVersion: v2
+name: billing-svc
+description: Colab billing-svc — subscriptions, entitlements, credits, dunning, refunds.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+dependencies:
+  - name: svc
+    version: "*"
+    repository: "file://../svc"
