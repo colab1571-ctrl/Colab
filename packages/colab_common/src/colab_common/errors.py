@@ -138,7 +138,7 @@ def register_handlers(app: FastAPI) -> None:
                 "code": exc.code,
                 "status": exc.http_status,
                 "request_id": request_id,
-                "message": exc.message,
+                "error_message": exc.message,
             },
         )
         headers: dict[str, str] = {}
