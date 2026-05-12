@@ -1,0 +1,81 @@
+name: i18n — Pseudo-locale snapshot tests
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "packages/i18n/locales/en/**"
+      - "apps/consumer-web/src/**"
+  push:
+    branches: [main]
+
+concurrency:
+  group: pseudo-locale-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pseudo-locale:
+    name: Pseudo-locale (qps-ploc) snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate qps-ploc locale files
+        run: node packages/i18n/scripts/generate-pseudo.mjs
+
+      - name: Assert no hand-edited qps-ploc files
+        run: |
+          # Verify generated files match expected output (no manual edits slipping in)
+          git diff --exit-code packages/i18n/locales/qps-ploc/ || \
+            (echo "ERROR: qps-ploc files are out of date. Run 'node packages/i18n/scripts/generate-pseudo.mjs' and commit." && exit 1)
+
+      - name: Build consumer-web with qps-ploc locale
+        run: npm run build --workspace=apps/consumer-web
+        env:
+          NEXT_PUBLIC_DEFAULT_LOCALE: qps-ploc
+          NODE_ENV: production
+
+      - name: Start consumer-web
+        run: |
+          npm run start --workspace=apps/consumer-web &
+          echo "APP_PID=$!" >> $GITHUB_ENV
+          timeout 30 bash -c 'until curl -sf http://localhost:3000 >/dev/null 2>&1; do sleep 1; done'
+        env:
+          PORT: 3000
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run pseudo-locale snapshot tests
+        run: npx playwright test apps/consumer-web/e2e/pseudo-locale/ --update-snapshots=false
+        env:
+          BASE_URL: http://localhost:3000
+          TEST_LOCALE: qps-ploc
+          CI: true
+
+      - name: Upload snapshot diffs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pseudo-locale-diffs
+          path: |
+            apps/consumer-web/test-results/
+            apps/consumer-web/e2e/pseudo-locale/__snapshots__/
+          retention-days: 14
+
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -n "$APP_PID" ]; then kill "$APP_PID" 2>/dev/null || true; fi
