@@ -1,0 +1,91 @@
+# analytics-svc Helm values
+# Two containers: FastAPI (event ingestion + KPI read) and Celery Beat worker.
+
+svc:
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/colab/analytics-svc"
+    tag: "latest"
+
+  replicas: 2
+
+  serviceAccount:
+    create: true
+    name: "analytics-svc-sa"
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/colab-prod-analytics-svc"
+
+  env:
+    LOG_LEVEL: "info"
+    ENV: "prod"
+
+  envFromSecret: "analytics-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/prod/analytics-svc/env"
+
+  service:
+    port: 8000
+
+  ingress:
+    enabled: false
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 15
+      periodSeconds: 10
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "2000m"
+      memory: "1Gi"
+
+# Celery Beat worker deployment (separate from FastAPI pods)
+celeryBeat:
+  enabled: true
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/colab/analytics-svc"
+    tag: "latest"
+  command: ["celery", "-A", "app.tasks.celery_app", "beat", "--loglevel=info", "--scheduler=redbeat.RedBeatScheduler"]
+  replicas: 1  # Beat should run as a single instance
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+
+# Celery worker deployment
+celeryWorker:
+  enabled: true
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/colab/analytics-svc"
+    tag: "latest"
+  command: ["celery", "-A", "app.tasks.celery_app", "worker", "--loglevel=info", "--concurrency=4", "-Q", "celery"]
+  replicas: 2
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "2000m"
+      memory: "1Gi"
+
+annotations:
+  colab.io/nightly-rollup: "02:00 UTC via Celery Beat"
+  colab.io/event-mirror: "postgres analytics schema"
