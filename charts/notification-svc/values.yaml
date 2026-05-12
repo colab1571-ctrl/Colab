@@ -1,0 +1,104 @@
+# notification-svc Helm values
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI
+    tag: "latest"
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  serviceAccount:
+    create: true
+    annotations:
+      # IRSA role must have SNS publish, SES send, Secrets Manager read
+      eks.amazonaws.com/role-arn: ""
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+    SES_NOREPLY_FROM: "noreply@mail.colab.app"
+    SES_MARKETING_FROM: "hello@mail.colab.app"
+    SES_CONFIGURATION_SET: "colab-notifications"
+
+  envFromSecret: "notification-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/notification-svc/env"
+    # Expected keys in the secret:
+    #   DATABASE_URL, REDIS_URL, RABBITMQ_URL
+    #   JWT_SECRET
+    #   SNS_APNS_PLATFORM_ARN, SNS_FCM_PLATFORM_ARN
+    #   AWS_REGION
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  ingress:
+    enabled: false
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 70
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 10
+      periodSeconds: 15
+    readiness:
+      path: /healthz
+      initialDelaySeconds: 5
+      periodSeconds: 10
+
+  # Celery worker sidecar (or separate deployment)
+  worker:
+    enabled: true
+    replicas: 2
+    concurrency: 4
+    queues: "celery"
+    resources:
+      requests:
+        cpu: "200m"
+        memory: "256Mi"
+      limits:
+        cpu: "1"
+        memory: "512Mi"
+
+  # Celery Beat scheduler (single replica)
+  beat:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+
+  # KEDA ScaledObject for Celery queue depth autoscaling
+  keda:
+    enabled: false  # Enable after KEDA installed in cluster
+    rabbitMQQueueName: "notification-svc.inbound"
+    targetQueueLength: 50
+    minReplicaCount: 2
+    maxReplicaCount: 10
