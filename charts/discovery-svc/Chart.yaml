@@ -1,0 +1,10 @@
+apiVersion: v2
+name: discovery-svc
+description: Colab discovery-svc — home feed, filters, hide-3mo, save, picked-for-you
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+dependencies:
+  - name: svc
+    version: "*"
+    repository: "file://../../charts/svc"

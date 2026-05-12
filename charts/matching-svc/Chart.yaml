@@ -1,0 +1,10 @@
+apiVersion: v2
+name: matching-svc
+description: Colab matching-svc — embedding ranking, 9×9 affinity matrix, nightly rerank, Celery Beat
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+dependencies:
+  - name: svc
+    version: "*"
+    repository: "file://../../charts/svc"

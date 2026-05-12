@@ -1,0 +1,79 @@
+# discovery-svc Helm values
+# Inherits from charts/svc base chart.
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI
+    tag: "latest"
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1024Mi"
+
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: ""  # IRSA role ARN — set by CI
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+    # Feed defaults
+    RATE_LIMIT_FEED_PROFILES_FREE_PER_DAY: "30"
+    FEED_DEFAULT_PAGE_SIZE: "20"
+    FEED_MAX_PAGE_SIZE: "50"
+    # Feature flags
+    FEATURE_BILLING_ENTITLEMENT_CHECK: "false"  # true once billing-svc (§013) is live
+    # Internal service URLs
+    PROFILE_SVC_URL: "http://profile-svc:8000"
+    BILLING_SVC_URL: "http://billing-svc:8000"
+    MATCHING_SVC_URL: "http://matching-svc:8000"
+
+  envFromSecret: "discovery-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/discovery-svc/env"
+    # Secrets expected:
+    # DATABASE_URL, REDIS_URL, RABBITMQ_URL, INTERNAL_SERVICE_SECRET
+    # POSTHOG_API_KEY
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  ingress:
+    enabled: false  # Exposed via API Gateway
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 12
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 75
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 10
+      periodSeconds: 15
+    readiness:
+      path: /healthz
+      initialDelaySeconds: 5
+      periodSeconds: 10
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
