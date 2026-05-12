@@ -1,0 +1,18 @@
+{
+  "services": [
+    {
+      "name": "gateway",
+      "localUrl": "http://localhost:8000/openapi.json",
+      "staticSpec": "packages/api-types/gateway/openapi.json",
+      "outputDir": "packages/api-types/gateway",
+      "package": "@colab/api-types-gateway"
+    },
+    {
+      "name": "hello",
+      "localUrl": "http://localhost:8001/openapi.json",
+      "staticSpec": "packages/api-types/hello/openapi.json",
+      "outputDir": "packages/api-types/hello",
+      "package": "@colab/api-types-hello"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "@colab/openapi-codegen",
+  "version": "0.1.0",
+  "description": "OpenAPI codegen scripts for Colab services",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch": "node fetch.mjs",
+    "generate": "node generate.mjs",
+    "lint": "echo 'No linting for codegen tools'"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.4.4"
+  }
+}
