@@ -5,4 +5,31 @@
 :root {
   --color-brand-primary: #5B5BD6;
   --color-brand-secondary: #FFB454;
+  --color-brand-primary-hover: #4f4ec0;
+  --font-inter: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-inter);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-primary);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[var(--color-brand-primary)] text-white font-semibold px-6 py-3 rounded-xl hover:bg-[var(--color-brand-primary-hover)] transition-colors focus-visible:ring-2 focus-visible:ring-[var(--color-brand-primary)] focus-visible:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply border border-neutral-200 text-neutral-800 font-semibold px-6 py-3 rounded-xl hover:bg-neutral-50 transition-colors;
+  }
 }
