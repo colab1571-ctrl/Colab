@@ -43,7 +43,7 @@ except ImportError:  # pragma: no cover
 
 
 class Base(DeclarativeBase):
-    pass
+    __allow_unmapped__ = True
 
 
 # ---------------------------------------------------------------------------

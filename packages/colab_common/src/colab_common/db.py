@@ -120,6 +120,12 @@ def _get_session_factory() -> async_sessionmaker[AsyncSession]:
 # ---------------------------------------------------------------------------
 
 
+# Module-level async session factory (lazy-initialized); alias expected by some services
+def async_session_factory() -> async_sessionmaker[AsyncSession]:
+    """Return the module-level session factory (creates it on first call)."""
+    return _get_session_factory()
+
+
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     """
     FastAPI dependency that yields a transactional async session.

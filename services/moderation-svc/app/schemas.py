@@ -193,7 +193,7 @@ class VideoScanRequest(BaseModel):
     sns_topic_arn: str | None = None
 
 
-class ScanDecision = Literal["allow", "soft_warn", "hide", "auto_hide_mute"]
+ScanDecision = Literal["allow", "soft_warn", "hide", "auto_hide_mute"]
 
 
 class ScanResponse(BaseModel):
