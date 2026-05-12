@@ -26,6 +26,8 @@ from colab_common.errors import register_handlers  # noqa: E402
 from colab_common.telemetry import RequestIDMiddleware  # noqa: E402
 
 from app.routers.collabs import router as collabs_router  # noqa: E402
+from app.routers.tasks import router as tasks_router  # noqa: E402
+from app.routers.whiteboard import router as whiteboard_router  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +53,8 @@ app = FastAPI(
     version="0.1.0",
     description=(
         "Collaboration lifecycle: status machine, inactivity cadence, "
-        "feedback collection, chat export (Premium), activity history."
+        "feedback collection, chat export (Premium), activity history. "
+        "P9 extensions: Whiteboard (tldraw + Y.js CRDT) and Project Plan (tasks + comments)."
     ),
     lifespan=lifespan,
     docs_url="/docs" if os.environ.get("ENV", "local") in ("local", "dev") else None,
@@ -63,6 +66,8 @@ register_handlers(app)
 app.add_middleware(RequestIDMiddleware)
 
 app.include_router(collabs_router)
+app.include_router(tasks_router)
+app.include_router(whiteboard_router)
 
 
 @app.get("/healthz", include_in_schema=False)
