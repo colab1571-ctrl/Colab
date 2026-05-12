@@ -1,0 +1,4 @@
+aws_region   = "us-east-1"
+env          = "prod"
+apex_domain  = "colab.test"
+email_domain = "colab.test"

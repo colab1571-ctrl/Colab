@@ -1,0 +1,16 @@
+image:
+  repository: "postgres"
+  tag: "16"
+  pullPolicy: IfNotPresent
+
+# Name of the k8s Secret containing DATABASE_URL.
+# This secret should be created by ESO from colab/<env>/shared/rds-url.
+databaseSecretName: "rds-url"
+
+# Override the database URL directly (use only for debugging — prefer secret).
+databaseUrl: ""
+
+serviceAccount:
+  create: true
+  name: "db-bootstrap-sa"
+  annotations: {}   # Add IRSA role ARN if RDS URL is read from Secrets Manager directly

@@ -1,0 +1,170 @@
+name: Terraform
+
+on:
+  pull_request:
+    branches: [main, staging]
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform.yml"
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform.yml"
+
+# One concurrent run per env per workflow — cancel stale plan runs on PR update.
+concurrency:
+  group: terraform-${{ github.event_name == 'push' && 'dev' || github.head_ref || github.ref_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  id-token: write   # Required for OIDC token
+  contents: read
+  pull-requests: write  # PR comments
+
+env:
+  TF_VERSION: "1.9.2"
+  AWS_REGION: us-east-1
+
+jobs:
+  # ── Detect which envs changed ─────────────────────────────────────────────
+  detect:
+    name: Detect changed envs
+    runs-on: ubuntu-latest
+    outputs:
+      dev: ${{ steps.filter.outputs.dev }}
+      staging: ${{ steps.filter.outputs.staging }}
+      prod: ${{ steps.filter.outputs.prod }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            dev:
+              - 'terraform/envs/dev/**'
+              - 'terraform/modules/**'
+            staging:
+              - 'terraform/envs/staging/**'
+              - 'terraform/modules/**'
+            prod:
+              - 'terraform/envs/prod/**'
+              - 'terraform/modules/**'
+
+  # ── Plan (PRs only) ───────────────────────────────────────────────────────
+  plan:
+    name: Plan (${{ matrix.env }})
+    needs: detect
+    if: |
+      github.event_name == 'pull_request' && (
+        (matrix.env == 'dev'     && needs.detect.outputs.dev     == 'true') ||
+        (matrix.env == 'staging' && needs.detect.outputs.staging == 'true') ||
+        (matrix.env == 'prod'    && needs.detect.outputs.prod    == 'true')
+      )
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [dev, staging, prod]
+
+    concurrency:
+      group: terraform-plan-${{ matrix.env }}-${{ github.head_ref }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/colab-github-deploy-${{ matrix.env }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4
+        with:
+          path: terraform/envs/${{ matrix.env }}/.terraform
+          key: tf-${{ matrix.env }}-${{ hashFiles('terraform/envs/${{ matrix.env }}/.terraform.lock.hcl') }}
+          restore-keys: tf-${{ matrix.env }}-
+
+      - name: Terraform Init
+        working-directory: terraform/envs/${{ matrix.env }}
+        run: terraform init -input=false
+
+      - name: Terraform Fmt Check
+        working-directory: terraform/envs/${{ matrix.env }}
+        run: terraform fmt -check -recursive ../../
+
+      - name: Terraform Validate
+        working-directory: terraform/envs/${{ matrix.env }}
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: terraform/envs/${{ matrix.env }}
+        run: |
+          terraform plan -input=false -no-color -out=tfplan.binary 2>&1 | tee plan_output.txt
+          terraform show -no-color tfplan.binary > plan_readable.txt
+
+      - name: Comment plan on PR
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('terraform/envs/${{ matrix.env }}/plan_readable.txt', 'utf8');
+            const maxLen = 60000;
+            const truncated = plan.length > maxLen ? plan.substring(0, maxLen) + '\n...[truncated]' : plan;
+            const body = `## Terraform Plan — \`${{ matrix.env }}\`\n\n<details><summary>Plan output</summary>\n\n\`\`\`hcl\n${truncated}\n\`\`\`\n</details>\n\n*Triggered by: ${{ github.actor }}*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+  # ── Apply to dev on merge to main ────────────────────────────────────────
+  apply-dev:
+    name: Apply dev
+    needs: detect
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.detect.outputs.dev == 'true'
+    runs-on: ubuntu-latest
+    environment: dev
+
+    concurrency:
+      group: terraform-apply-dev
+      cancel-in-progress: false  # Never cancel an in-flight apply
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/colab-github-deploy-dev
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4
+        with:
+          path: terraform/envs/dev/.terraform
+          key: tf-dev-${{ hashFiles('terraform/envs/dev/.terraform.lock.hcl') }}
+          restore-keys: tf-dev-
+
+      - name: Terraform Init
+        working-directory: terraform/envs/dev
+        run: terraform init -input=false
+
+      - name: Terraform Apply
+        working-directory: terraform/envs/dev
+        run: terraform apply -auto-approve -input=false

@@ -1,0 +1,75 @@
+# Default values for the Colab service base chart.
+# Override in your per-service chart's values.yaml.
+
+image:
+  repository: ""          # ECR repo URI — REQUIRED in per-service chart
+  tag: "latest"           # Git SHA injected by CI
+  pullPolicy: IfNotPresent
+
+replicas: 2               # 3 in prod; override in per-service values or env-specific values
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+serviceAccount:
+  create: true
+  name: ""                # Defaults to <release-name>-sa; override for IRSA
+  annotations: {}         # eks.amazonaws.com/role-arn injected here by Terraform outputs
+
+env: {}                   # Non-secret env vars as key: value map
+
+envFromSecret: ""         # Name of the k8s Secret produced by ESO (e.g. auth-svc-env)
+
+externalSecret:
+  refreshInterval: "1h"
+  secretStoreRef: "colab-cluster-store"
+  remoteRef: ""           # REQUIRED: colab/<env>/<svc>/env — set in per-service chart
+
+service:
+  port: 8000              # FastAPI default
+  type: ClusterIP
+
+ingress:
+  enabled: false
+  className: "alb"
+  host: ""                # e.g. api.colab.app
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/group.name: "colab"
+    # alb.ingress.kubernetes.io/certificate-arn: <ACM ARN injected by CI>
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilization: 70
+
+probes:
+  liveness:
+    path: /healthz
+    initialDelaySeconds: 15
+    periodSeconds: 20
+    failureThreshold: 3
+  readiness:
+    path: /ready
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+
+podDisruptionBudget:
+  minAvailable: 1
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels: {}   # Populated by _helpers.tpl with app label

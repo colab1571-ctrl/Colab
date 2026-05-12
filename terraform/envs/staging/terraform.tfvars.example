@@ -1,0 +1,4 @@
+aws_region   = "us-east-1"
+env          = "staging"
+apex_domain  = "staging.colab.test"
+email_domain = "staging.colab.test"

@@ -1,0 +1,49 @@
+name: OIDC Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Environment to test OIDC against (dev|staging|prod)"
+        required: true
+        default: dev
+        type: choice
+        options: [dev, staging, prod]
+
+permissions:
+  id-token: write  # Required for OIDC token
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  oidc-smoke:
+    name: Assume OIDC role (${{ inputs.env }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/colab-github-deploy-${{ inputs.env }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify caller identity
+        run: |
+          echo "=== AWS STS Get Caller Identity ==="
+          aws sts get-caller-identity
+          echo ""
+          echo "=== Assumed role ARN ==="
+          aws sts get-caller-identity --query 'Arn' --output text
+
+      - name: Verify region access
+        run: |
+          echo "=== EC2 Describe Regions (minimal permission check) ==="
+          aws ec2 describe-regions --query 'Regions[?RegionName==`us-east-1`].RegionName' --output text
+
+      - name: Summary
+        run: |
+          ROLE=$(aws sts get-caller-identity --query 'Arn' --output text)
+          echo "OIDC smoke test PASSED for env=${{ inputs.env }}"
+          echo "Assumed role: $ROLE"
