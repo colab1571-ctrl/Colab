@@ -69,3 +69,5 @@ mockup-cache/
 !terraform/modules/secrets/**
 # Allow the Terraform secrets module and the seeding helper script
 !scripts/seed_vendor_secrets.sh
+# Allow security documentation that discusses secrets management (not actual secrets)
+!docs/security/secrets-rotation-runbook.md
