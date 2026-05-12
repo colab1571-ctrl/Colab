@@ -20,7 +20,7 @@ dependencies = [
     "pyotp>=2.9,<3",
     "qrcode>=7.4,<8",
     "passlib[bcrypt]>=1.7,<2",
-    "redis[hiredis]>=5.2,<6",
+    "redis[hiredis]>=5.2,<8",
     "aio-pika>=9.4,<10",
 ]
 
