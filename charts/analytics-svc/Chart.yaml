@@ -1,0 +1,12 @@
+apiVersion: v2
+name: analytics-svc
+description: Colab Analytics Service — event ingestion proxy, KPI rollups (Celery Beat)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+dependencies:
+  - name: svc
+    version: "0.1.0"
+    repository: "file://../../charts/svc"
+    alias: svc

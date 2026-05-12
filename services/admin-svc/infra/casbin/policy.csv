@@ -1,0 +1,74 @@
+# Casbin policy for admin-svc
+# Format: p, role, object, action
+# Generated from plan.md §4.2 permission matrix
+
+# mod role
+p, mod, moderation_queue, read
+p, mod, moderation_case, read
+p, mod, moderation_case, action
+p, mod, dmca, read
+p, mod, dmca, decide
+p, mod, user_360, read
+p, mod, user, suspend
+p, mod, feature_flag, read
+p, mod, kpi_rollup, read
+p, mod, audit_log, read_own
+
+# support role
+p, support, support_queue, read
+p, support, support_ticket, read
+p, support, support_ticket, reply
+p, support, support_ticket, escalate
+p, support, support_ticket, resolve
+p, support, user_360, read
+p, support, credit_grant, create_limited
+p, support, feature_flag, read
+p, support, kpi_rollup, read
+p, support, audit_log, read_own
+
+# billing_admin role
+p, billing_admin, tier, read
+p, billing_admin, tier, write
+p, billing_admin, entitlement, read
+p, billing_admin, entitlement, write
+p, billing_admin, price_mapping, read
+p, billing_admin, price_mapping, write
+p, billing_admin, refund, read
+p, billing_admin, refund, decide
+p, billing_admin, credit_grant, create
+p, billing_admin, user_360, read
+p, billing_admin, feature_flag, read
+p, billing_admin, feature_flag, write_nonprod
+p, billing_admin, kpi_rollup, read
+p, billing_admin, audit_log, read_own
+
+# super_admin role (full access)
+p, super_admin, moderation_queue, read
+p, super_admin, moderation_case, read
+p, super_admin, moderation_case, action
+p, super_admin, dmca, read
+p, super_admin, dmca, decide
+p, super_admin, support_queue, read
+p, super_admin, support_ticket, read
+p, super_admin, support_ticket, reply
+p, super_admin, support_ticket, escalate
+p, super_admin, support_ticket, resolve
+p, super_admin, tier, read
+p, super_admin, tier, write
+p, super_admin, entitlement, read
+p, super_admin, entitlement, write
+p, super_admin, price_mapping, read
+p, super_admin, price_mapping, write
+p, super_admin, refund, read
+p, super_admin, refund, decide
+p, super_admin, credit_grant, create
+p, super_admin, user_360, read
+p, super_admin, user, suspend
+p, super_admin, user, unsuspend
+p, super_admin, user, grant_role
+p, super_admin, feature_flag, read
+p, super_admin, feature_flag, write_nonprod
+p, super_admin, feature_flag, write_prod
+p, super_admin, kpi_rollup, read
+p, super_admin, audit_log, read_all
+p, super_admin, casbin_policy, write

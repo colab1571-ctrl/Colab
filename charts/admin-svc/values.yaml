@@ -1,0 +1,74 @@
+# admin-svc Helm values
+# Internal-only service — NOT exposed via public API Gateway.
+# Access: via admin-web (CloudFront + WAF) → admin-svc (internal load balancer).
+
+svc:
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/colab/admin-svc"
+    tag: "latest"
+
+  replicas: 2
+
+  serviceAccount:
+    create: true
+    name: "admin-svc-sa"
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/colab-prod-admin-svc"
+
+  env:
+    LOG_LEVEL: "info"
+    ENV: "prod"
+    # IP allowlist (comma-separated CIDRs). Primary enforcement at API Gateway resource policy.
+    ADMIN_IP_ALLOWLIST: ""  # Populated from Secrets Manager via ESO
+
+  envFromSecret: "admin-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/prod/admin-svc/env"
+
+  service:
+    port: 8000
+
+  # Internal only — no public ingress. Accessed via internal ALB from admin-web.
+  ingress:
+    enabled: false
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    readiness:
+      path: /readyz
+      initialDelaySeconds: 10
+      periodSeconds: 5
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "512Mi"
+
+  # Network policy: only allow traffic from admin-web namespace
+  networkPolicy:
+    enabled: true
+    ingressFrom:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: admin-web
+
+  # AWS API Gateway resource policy is the primary IP allowlist enforcement.
+  # See: infra/terraform/admin/allowlist.tf
+  annotations:
+    colab.io/ip-allowlist: "api-gateway-resource-policy"
+    colab.io/audit-log: "append-only"
+    colab.io/rbac: "casbin"
