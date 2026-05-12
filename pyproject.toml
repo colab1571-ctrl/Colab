@@ -5,9 +5,27 @@ requires-python = ">=3.12"
 
 [tool.uv.workspace]
 members = [
-    "services/gateway-svc",
-    "services/hello-svc",
     "packages/colab_common",
+    "services/admin-svc",
+    "services/ai-orchestrator-svc",
+    "services/analytics-svc",
+    "services/auth-svc",
+    "services/billing-svc",
+    "services/chat-svc",
+    "services/collab-svc",
+    "services/discovery-svc",
+    "services/gateway-svc",
+    "services/geo-svc",
+    "services/hello-svc",
+    "services/identity-svc",
+    "services/invite-svc",
+    "services/matching-svc",
+    "services/media-svc",
+    "services/meeting-svc",
+    "services/moderation-svc",
+    "services/notification-svc",
+    "services/profile-svc",
+    "services/support-svc",
 ]
 
 [tool.uv.sources]
