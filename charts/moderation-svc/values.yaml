@@ -1,0 +1,181 @@
+# moderation-svc Helm values
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI
+    tag: "latest"
+
+  # API + Celery workers run as separate deployments
+  # Worker replicas controlled separately via workerReplicas
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  serviceAccount:
+    create: true
+    annotations:
+      # IRSA role must have: Rekognition:DetectModerationLabels, S3:GetObject (media + audit buckets),
+      # Rekognition:StartContentModeration, Rekognition:GetContentModeration
+      eks.amazonaws.com/role-arn: ""
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+
+    # Scan model configuration
+    MOD_OPENAI_MODEL_MOD: "omni-moderation-latest"
+    MOD_OPENAI_EMBEDDING_MODEL: "text-embedding-3-large"
+    MOD_AWS_REKOGNITION_REGION: "us-east-1"
+    MOD_REKOGNITION_MIN_CONFIDENCE: "50"
+
+    # Risk thresholds (admin-tunable at runtime via ModConfig; env sets startup defaults)
+    MOD_TIER1_THRESHOLD: "0.4"
+    MOD_TIER2_THRESHOLD: "0.7"
+    MOD_TIER3_THRESHOLD: "0.9"
+    MOD_DUP_BUMP: "0.3"
+    MOD_PHASH_HAMMING_THRESHOLD: "6"
+    MOD_CHROMAPRINT_SIM_THRESHOLD: "0.85"
+    MOD_SEMDUP_COSINE_THRESHOLD: "0.95"
+
+    # Rate limits
+    MOD_REPORTS_PER_USER_PER_DAY: "20"
+    MOD_DMCA_PER_IP_PER_DAY: "5"
+    MOD_DMCA_PER_EMAIL_PER_DAY: "10"
+    MOD_DMCA_STATUTORY_WINDOW_DAYS: "14"
+
+    # S3
+    MOD_S3_BUCKET_AUDIT_LOGS: "colab-audit-logs"
+
+  envFromSecret: "moderation-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/moderation-svc/env"
+    # Required secrets in Secrets Manager:
+    # - OPENAI_API_KEY
+    # - DATABASE_URL
+    # - DATABASE_URL_SYNC
+    # - REDIS_URL
+    # - RABBITMQ_URL
+    # - REKOGNITION_ROLE_ARN
+    # - REKOGNITION_SNS_TOPIC_ARN
+    # - S3_MEDIA_BUCKET
+    # - JWT_SECRET
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  ingress:
+    enabled: false  # accessed via gateway-svc
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    readiness:
+      path: /healthz
+      initialDelaySeconds: 10
+      periodSeconds: 5
+
+# ---------------------------------------------------------------------------
+# Celery workers — separate deployments
+# ---------------------------------------------------------------------------
+
+celery:
+  # Fast queue (text scan, propagation, auth gate)
+  fast:
+    replicas: 3
+    queues: "mod-fast"
+    resources:
+      requests:
+        cpu: "200m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+    command: >
+      celery -A app.workers.celery_app:celery_app worker
+      -Q mod-fast
+      --concurrency=8
+      --loglevel=info
+
+  # Image queue (Rekognition + pHash) — I/O heavy
+  image:
+    replicas: 2
+    queues: "mod-image"
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "2000m"
+        memory: "2Gi"
+    command: >
+      celery -A app.workers.celery_app:celery_app worker
+      -Q mod-image
+      --concurrency=4
+      --loglevel=info
+
+  # Audio queue (Chromaprint + fpcalc) — CPU heavy
+  audio:
+    replicas: 2
+    queues: "mod-audio"
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+      limits:
+        cpu: "2000m"
+        memory: "1Gi"
+    command: >
+      celery -A app.workers.celery_app:celery_app worker
+      -Q mod-audio
+      --concurrency=2
+      --loglevel=info
+
+  # Video queue — async Rekognition, low concurrency
+  video:
+    replicas: 1
+    queues: "mod-video"
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    command: >
+      celery -A app.workers.celery_app:celery_app worker
+      -Q mod-video
+      --concurrency=2
+      --loglevel=info
+
+  # Beat scheduler — single replica (Redbeat prevents duplicate execution)
+  beat:
+    replicas: 1
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "128Mi"
+      limits:
+        cpu: "250m"
+        memory: "256Mi"
+    command: >
+      celery -A app.workers.celery_app:celery_app beat
+      -S redbeat.RedBeatScheduler
+      --loglevel=info

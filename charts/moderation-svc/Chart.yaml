@@ -1,0 +1,12 @@
+apiVersion: v2
+name: moderation-svc
+description: Colab Moderation Service — risk-tiered pipeline, DMCA workflow, action propagation
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+dependencies:
+  - name: svc
+    version: "0.1.0"
+    repository: "file://../../charts/svc"
+    alias: svc
