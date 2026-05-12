@@ -1,0 +1,84 @@
+name: A11y — Web (axe-core + Playwright)
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+# Cancel in-progress runs on new push to same PR
+concurrency:
+  group: a11y-web-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  axe:
+    name: axe-core — ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [consumer-web, admin-web, marketing-web]
+        include:
+          - app: consumer-web
+            port: 3000
+            base_url: http://localhost:3000
+          - app: admin-web
+            port: 3002
+            base_url: http://localhost:3002
+          - app: marketing-web
+            port: 3001
+            base_url: http://localhost:3001
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build ${{ matrix.app }}
+        run: npm run build --workspace=apps/${{ matrix.app }}
+        env:
+          NODE_ENV: production
+
+      - name: Start ${{ matrix.app }} server
+        run: |
+          npm run start --workspace=apps/${{ matrix.app }} &
+          echo "APP_PID=$!" >> $GITHUB_ENV
+          # Wait for server to be ready (max 30s)
+          timeout 30 bash -c 'until curl -sf ${{ matrix.base_url }} >/dev/null 2>&1; do sleep 1; done'
+        env:
+          PORT: ${{ matrix.port }}
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run axe-core a11y tests
+        run: npx playwright test apps/${{ matrix.app }}/e2e/a11y/
+        env:
+          BASE_URL: ${{ matrix.base_url }}
+          CI: true
+
+      - name: Upload axe report (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axe-report-${{ matrix.app }}
+          path: |
+            apps/${{ matrix.app }}/axe-results/
+            apps/${{ matrix.app }}/test-results/
+          retention-days: 14
+
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -n "$APP_PID" ]; then kill "$APP_PID" 2>/dev/null || true; fi

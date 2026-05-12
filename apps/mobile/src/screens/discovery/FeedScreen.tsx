@@ -40,23 +40,49 @@ function ProfileCardItem({
   profile: ProfileCard;
   onPress: (p: ProfileCard) => void;
 }): React.ReactElement {
+  const vocationsStr = profile.vocations.map((v) => v.subtag).join(", ");
+  const a11yLabel = [
+    profile.display_name,
+    vocationsStr,
+    profile.location_city,
+    profile.last_active_relative ? `Active ${profile.last_active_relative}` : null,
+    "Tap to view full profile.",
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={() => onPress(profile)}
       activeOpacity={0.85}
+      accessibilityLabel={a11yLabel}
+      accessibilityRole="button"
+      accessibilityHint="Opens this creator's full profile"
     >
       <View style={styles.cardHeader}>
-        <View style={styles.avatar} />
+        <View
+          style={styles.avatar}
+          accessible={false}
+          importantForAccessibility="no"
+        />
         <View style={styles.cardInfo}>
-          <Text style={styles.displayName}>{profile.display_name}</Text>
+          <Text style={styles.displayName} importantForAccessibility="no-hide-descendants">
+            {profile.display_name}
+          </Text>
           {profile.location_city && (
-            <Text style={styles.location}>{profile.location_city}</Text>
+            <Text style={styles.location} importantForAccessibility="no-hide-descendants">
+              {profile.location_city}
+            </Text>
           )}
         </View>
       </View>
       {profile.vocations.length > 0 && (
-        <View style={styles.vocationsRow}>
+        <View
+          style={styles.vocationsRow}
+          accessible={false}
+          importantForAccessibility="no"
+        >
           {profile.vocations.map((v, i) => (
             <View key={i} style={styles.vocationChip}>
               <Text style={styles.vocationText}>{v.subtag}</Text>
@@ -65,11 +91,17 @@ function ProfileCardItem({
         </View>
       )}
       {profile.bio && (
-        <Text style={styles.bio} numberOfLines={2}>
+        <Text
+          style={styles.bio}
+          numberOfLines={2}
+          importantForAccessibility="no-hide-descendants"
+        >
           {profile.bio}
         </Text>
       )}
-      <Text style={styles.lastActive}>{profile.last_active_relative}</Text>
+      <Text style={styles.lastActive} importantForAccessibility="no-hide-descendants">
+        {profile.last_active_relative}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -100,30 +132,43 @@ function SwipeCardStack({
     );
   }
 
+  const vocationsStr = current.vocations.map((v) => v.subtag).join(", ");
+  const cardA11y = `${current.display_name}${vocationsStr ? `, ${vocationsStr}` : ""}${current.location_city ? `, ${current.location_city}` : ""}. Tap to view full profile.`;
+
   return (
     <View style={styles.swipeContainer}>
       <TouchableOpacity
         style={styles.swipeCard}
         onPress={() => onViewDetail(current)}
         activeOpacity={0.9}
+        accessibilityLabel={cardA11y}
+        accessibilityRole="button"
+        accessibilityHint="Opens full profile. Use action buttons below to save or pass."
       >
-        <Text style={styles.swipeDisplayName}>{current.display_name}</Text>
+        <Text style={styles.swipeDisplayName} importantForAccessibility="no-hide-descendants">
+          {current.display_name}
+        </Text>
         {current.location_city && (
-          <Text style={styles.swipeLocation}>{current.location_city}</Text>
+          <Text style={styles.swipeLocation} importantForAccessibility="no-hide-descendants">
+            {current.location_city}
+          </Text>
         )}
         {current.bio && (
-          <Text style={styles.swipeBio} numberOfLines={4}>
+          <Text style={styles.swipeBio} numberOfLines={4} importantForAccessibility="no-hide-descendants">
             {current.bio}
           </Text>
         )}
       </TouchableOpacity>
-      <View style={styles.swipeActions}>
+      <View style={styles.swipeActions} accessibilityLabel="Profile actions">
         <TouchableOpacity
           style={[styles.swipeBtn, styles.hideBtnStyle]}
           onPress={() => {
             onHide(current);
             setIndex((i) => i + 1);
           }}
+          accessibilityLabel={`Hide ${current.display_name}'s profile for 3 months`}
+          accessibilityRole="button"
+          hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
         >
           <Text style={styles.swipeBtnText}>Hide 3mo</Text>
         </TouchableOpacity>
@@ -133,12 +178,18 @@ function SwipeCardStack({
             onSave(current);
             setIndex((i) => i + 1);
           }}
+          accessibilityLabel={`Save ${current.display_name}'s profile`}
+          accessibilityRole="button"
+          hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
         >
           <Text style={styles.swipeBtnText}>Save</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.swipeBtn, styles.passBtn]}
           onPress={() => setIndex((i) => i + 1)}
+          accessibilityLabel={`Pass on ${current.display_name}`}
+          accessibilityRole="button"
+          hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
         >
           <Text style={styles.swipeBtnText}>Pass</Text>
         </TouchableOpacity>
@@ -231,16 +282,34 @@ export function FeedScreen(): React.ReactElement {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Discover</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerBtn} onPress={() => setShowPickedTab(true)}>
+      <View style={styles.header} accessibilityRole="header">
+        <Text style={styles.title} accessibilityRole="header">Discover</Text>
+        <View style={styles.headerActions} accessibilityLabel="Discovery controls">
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => setShowPickedTab(true)}
+            accessibilityLabel="Picked for you — AI curated creator picks"
+            accessibilityRole="button"
+            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+          >
             <Text style={styles.headerBtnText}>Picked ✦</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerBtn} onPress={() => setShowFilters(true)}>
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => setShowFilters(true)}
+            accessibilityLabel="Open filters drawer"
+            accessibilityRole="button"
+            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+          >
             <Text style={styles.headerBtnText}>Filters</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerBtn} onPress={toggleMode}>
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={toggleMode}
+            accessibilityLabel={`Switch to ${mode === "scroll" ? "swipe" : "scroll"} mode`}
+            accessibilityRole="button"
+            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+          >
             <Text style={styles.headerBtnText}>{mode === "scroll" ? "⊡ Swipe" : "☰ Scroll"}</Text>
           </TouchableOpacity>
         </View>

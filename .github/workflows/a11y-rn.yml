@@ -1,0 +1,61 @@
+name: A11y — RN (Detox smoke tests)
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+concurrency:
+  group: a11y-rn-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detox-a11y:
+    name: Detox a11y smoke — iOS
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Expo build
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/mobile/.expo
+            apps/mobile/ios/build
+          key: expo-ios-${{ runner.os }}-${{ hashFiles('apps/mobile/package.json') }}
+
+      - name: Build Expo iOS (test profile)
+        working-directory: apps/mobile
+        run: npx eas build --profile test --platform ios --local --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install Detox
+        run: npm install -g detox-cli
+
+      - name: Run Detox a11y smoke flows (10 flows)
+        working-directory: apps/mobile
+        run: npx detox test --configuration ios.sim.test --testPathPattern e2e/a11y --headless
+        env:
+          CI: true
+
+      - name: Upload Detox artifacts (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detox-a11y-artifacts
+          path: apps/mobile/artifacts/
+          retention-days: 14
