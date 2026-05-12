@@ -1,0 +1,116 @@
+# support-svc Helm values
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI
+    tag: "latest"
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  serviceAccount:
+    create: true
+    annotations:
+      # IRSA role must have: S3:GetObject/PutObject on colab-support-attachments bucket
+      eks.amazonaws.com/role-arn: ""
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+
+    # OpenAI
+    SUPPORT_OPENAI_EMBEDDING_MODEL: "text-embedding-3-large"
+    SUPPORT_OPENAI_CHAT_MODEL: "gpt-4o"
+
+    # pgvector retrieval thresholds
+    SUPPORT_FAQ_TOP_K: "5"
+    SUPPORT_FAQ_COSINE_THRESHOLD: "0.72"
+
+    # Chatbot rate limiting
+    SUPPORT_CHATBOT_RATE_LIMIT_PER_HOUR: "10"
+    SUPPORT_CHATBOT_MAX_HISTORY_TURNS: "6"
+
+    # Status page
+    SUPPORT_STATUSPAGE_SUMMARY_URL: ""
+    SUPPORT_STATUS_PAGE_CACHE_TTL: "60"
+
+    # Billing svc
+    SUPPORT_BILLING_SVC_URL: "http://billing-svc:8000"
+    SUPPORT_BILLING_TIER_CACHE_TTL: "300"
+
+    # S3
+    SUPPORT_S3_ATTACHMENTS_BUCKET: "colab-support-attachments"
+
+  envFromSecret: "support-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/support-svc/env"
+    # Secret keys to inject:
+    # - SUPPORT_OPENAI_API_KEY
+    # - DATABASE_URL
+    # - DATABASE_URL_SYNC
+    # - RABBITMQ_URL
+    # - SUPPORT_REDIS_URL
+
+# ---------------------------------------------------------------------------
+# Celery workers
+# ---------------------------------------------------------------------------
+
+workers:
+  # General tasks (embedding, notifications)
+  default:
+    replicas: 2
+    queues: "support-default"
+    resources:
+      requests:
+        cpu: "200m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+    command: >
+      celery -A app.workers.celery_app:celery_app worker
+      -Q support-default
+      --concurrency=4
+      --loglevel=info
+
+  # Beat scheduler — single replica with Redbeat lock
+  beat:
+    replicas: 1
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "128Mi"
+      limits:
+        cpu: "250m"
+        memory: "256Mi"
+    command: >
+      celery -A app.workers.celery_app:celery_app beat
+      -S redbeat.RedBeatScheduler
+      --loglevel=info
+
+# ---------------------------------------------------------------------------
+# Horizontal Pod Autoscaler
+# ---------------------------------------------------------------------------
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+# ---------------------------------------------------------------------------
+# Ingress (handled by gateway-svc; support-svc is internal only)
+# ---------------------------------------------------------------------------
+
+ingress:
+  enabled: false
