@@ -1,0 +1,1 @@
+"""auth-svc Pydantic schemas."""

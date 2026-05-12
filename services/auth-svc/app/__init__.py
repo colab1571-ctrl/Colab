@@ -1,0 +1,1 @@
+"""auth-svc application package."""
