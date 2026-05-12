@@ -1,0 +1,4 @@
+@import "../../node_modules/@colab/ui/src/theme/tokens.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
