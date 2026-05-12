@@ -1,0 +1,133 @@
+# profile-svc Helm values
+# Inherits from charts/svc base chart.
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI; e.g. <account>.dkr.ecr.us-east-1.amazonaws.com/colab/profile-svc
+    tag: "latest"
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"   # Celery workers + embedding in-memory + Pillow
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"   # AI review fan-out peak
+
+  serviceAccount:
+    create: true
+    annotations:
+      # IRSA role must have:
+      #   kms:GenerateDataKey, kms:Decrypt on alias/colab-oauth-tokens-*
+      #   s3:PutObject, s3:GetObject, s3:HeadObject on colab-portfolio-* bucket
+      #   rekognition:DetectModerationLabels on *
+      eks.amazonaws.com/role-arn: ""  # Set by CI to the IRSA role ARN
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+    AWS_REGION: "us-east-1"
+    APP_DOMAIN: "https://app.colab.com"
+    S3_PORTFOLIO_BUCKET: "colab-portfolio-staging"
+    KMS_KEY_ID_TOKENS: "alias/colab-oauth-tokens-staging"
+    EMBEDDING_MODEL: "text-embedding-3-large"
+    EMBEDDING_DIMENSIONS: "1536"
+    BADGE_RECHECK_COOLDOWN_HOURS: "24"
+    PRESIGNED_URL_TTL_SECONDS: "900"
+    # AI review weights
+    AI_WEIGHT_OPENAI: "0.35"
+    AI_WEIGHT_REKOGNITION: "0.35"
+    AI_WEIGHT_DUP: "0.20"
+    AI_WEIGHT_EMBEDDING_OUTLIER: "0.10"
+    # Risk thresholds
+    AI_RISK_SOFT_WARN: "0.40"
+    AI_RISK_HIDE: "0.70"
+    AI_RISK_SEVERE: "0.90"
+    # Internal service endpoints
+    MODERATION_SVC_URL: "http://moderation-svc:8000"
+    GEO_SVC_URL: "http://geo-svc:8000"
+    NOTIFICATION_SVC_URL: "http://notification-svc:8000"
+
+  envFromSecret: "profile-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/profile-svc/env"
+    # Secrets expected in Secrets Manager:
+    # DATABASE_URL, REDIS_URL, RABBITMQ_URL
+    # OPENAI_API_KEY
+    # INSTAGRAM_APP_ID, INSTAGRAM_APP_SECRET
+    # YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET
+    # SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
+    # INTERNAL_SERVICE_SECRET
+    # POSTHOG_API_KEY
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  ingress:
+    enabled: false  # Exposed via API Gateway
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 12
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  probes:
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 15
+      periodSeconds: 20
+    readiness:
+      path: /healthz
+      initialDelaySeconds: 10
+      periodSeconds: 10
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+
+# ---------------------------------------------------------------------------
+# Celery worker deployment (separate from API workers)
+# ---------------------------------------------------------------------------
+celery:
+  enabled: true
+  replicas: 2
+  queues:
+    - name: ai_review
+      concurrency: 4
+    - name: health_score
+      concurrency: 8
+    - name: embeddings
+      concurrency: 4
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"   # Pillow + Rekognition + embedding in memory
+    limits:
+      cpu: "2000m"
+      memory: "6Gi"
+
+# ---------------------------------------------------------------------------
+# Celery Beat scheduler
+# ---------------------------------------------------------------------------
+celeryBeat:
+  enabled: true
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
