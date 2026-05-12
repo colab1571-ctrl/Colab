@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  validate:
+    name: Validate release tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate semver tag
+        run: |
+          TAG="${{ github.ref_name }}"
+          if ! echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Tag $TAG does not match vMAJOR.MINOR.PATCH format"
+            exit 1
+          fi
+          echo "Valid release tag: $TAG"
+
+  build-images:
+    name: Build all service images
+    needs: validate
+    uses: ./.github/workflows/build-and-push.yml
+    permissions:
+      id-token: write
+      contents: read
+
+  deploy-staging:
+    name: Deploy to staging
+    needs: build-images
+    uses: ./.github/workflows/deploy.yml
+    with:
+      env: staging
+      image_tag: ${{ github.ref_name }}
+    permissions:
+      id-token: write
+      contents: read
+
+  smoke-test:
+    name: Smoke tests on staging
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check gateway health
+        run: |
+          curl -sf ${{ vars.STAGING_API_URL }}/healthz | jq -e '.status == "ok"'
+          echo "Smoke test passed"
+
+  production-gate:
+    name: Production approval gate
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    environment: prod  # Requires manual approval in GitHub environments
+    steps:
+      - name: Approved — deploying to production
+        run: echo "Production deployment approved for ${{ github.ref_name }}"
+
+  deploy-prod:
+    name: Deploy to production
+    needs: production-gate
+    uses: ./.github/workflows/deploy.yml
+    with:
+      env: prod
+      image_tag: ${{ github.ref_name }}
+    permissions:
+      id-token: write
+      contents: read
+
+  github-release:
+    name: Create GitHub Release
+    needs: deploy-prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          tag_name: ${{ github.ref_name }}

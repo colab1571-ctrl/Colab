@@ -1,0 +1,101 @@
+name: Web Build and Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/consumer-web/**"
+      - "apps/marketing-web/**"
+      - "apps/admin-web/**"
+      - "packages/ui/**"
+      - "packages/design-tokens/**"
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "App to deploy"
+        required: true
+        type: choice
+        options: [consumer-web, marketing-web, admin-web, all]
+      env:
+        description: "Target environment"
+        required: true
+        type: choice
+        options: [staging, prod]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-consumer-web:
+    name: Build consumer-web
+    if: github.event.inputs.app == 'consumer-web' || github.event.inputs.app == 'all' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "9.15.0"
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm --filter consumer-web build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          NEXT_PUBLIC_POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY_WEB }}
+          NEXT_PUBLIC_SENTRY_DSN_CONSUMER_WEB: ${{ secrets.SENTRY_DSN_CONSUMER_WEB }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/colab-gha-${{ github.ref_name == 'main' && 'prod' || 'staging' }}
+          aws-region: us-east-1
+
+      - name: Deploy to S3 + CloudFront invalidation
+        run: |
+          aws s3 sync apps/consumer-web/.next/static s3://${{ secrets.S3_BUCKET_WEB_STATIC }}/consumer-web/_next/static --delete
+          aws s3 sync apps/consumer-web/public s3://${{ secrets.S3_BUCKET_WEB_STATIC }}/consumer-web --delete
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/consumer-web/*"
+
+  build-marketing-web:
+    name: Build marketing-web
+    if: github.event.inputs.app == 'marketing-web' || github.event.inputs.app == 'all' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "9.15.0"
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm --filter marketing-web build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/colab-gha-${{ github.ref_name == 'main' && 'prod' || 'staging' }}
+          aws-region: us-east-1
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync apps/marketing-web/out s3://${{ secrets.S3_BUCKET_WEB_STATIC }}/marketing-web --delete
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/marketing-web/*"

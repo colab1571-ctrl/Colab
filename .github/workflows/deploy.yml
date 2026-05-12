@@ -1,0 +1,79 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Target environment"
+        required: true
+        type: choice
+        options: [staging, prod]
+      image_tag:
+        description: "Image tag to deploy (defaults to latest main SHA)"
+        required: false
+        default: "latest"
+  workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
+      image_tag:
+        required: true
+        type: string
+
+concurrency:
+  group: deploy-${{ inputs.env }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  discover-services:
+    name: Discover services
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set-matrix
+        run: |
+          SERVICES=$(ls services/ | jq -R . | jq -s .)
+          echo "matrix={\"service\":$(echo $SERVICES)}" >> $GITHUB_OUTPUT
+
+  deploy:
+    name: Deploy ${{ matrix.service }} → ${{ inputs.env }}
+    needs: discover-services
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env }}
+    strategy:
+      matrix: ${{ fromJson(needs.discover-services.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/colab-gha-${{ inputs.env == 'prod' && 'prod' || 'staging' }}
+          aws-region: us-east-1
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name colab-${{ inputs.env }} --region us-east-1
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "3.14.4"
+
+      - name: Helm upgrade
+        run: |
+          helm upgrade --install ${{ matrix.service }} charts/svc \
+            -f services/${{ matrix.service }}/service.yaml \
+            --namespace default \
+            --set image.tag=${{ inputs.image_tag }} \
+            --set image.repository=${{ secrets.ECR_REGISTRY }}/colab/${{ matrix.service }} \
+            --set env.ENV=${{ inputs.env }} \
+            --atomic \
+            --timeout 5m
