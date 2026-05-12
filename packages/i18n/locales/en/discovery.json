@@ -1,13 +1,75 @@
 {
   "title": "Discover",
+  "page_heading": "Discover Creators",
   "picked_for_you": "Picked for you",
+  "picked_for_you_heading": "Your daily picks",
+  "picked_for_you_subheading": "Creators our AI thinks you'll vibe with.",
   "swipe_mode": "Swipe",
   "scroll_mode": "Browse",
+  "mode_toggle_a11y": "Switch to {mode} mode",
   "send_vibe_check": "Send Vibe Check",
+  "send_vibe_check_a11y": "Send {name} a Vibe Check",
   "save_profile": "Save",
+  "save_profile_a11y": "Save {name}'s profile",
+  "unsave_profile": "Saved",
+  "unsave_profile_a11y": "Remove {name} from saved profiles",
   "hide_profile": "Hide for 3 months",
+  "hide_profile_a11y": "Hide {name}'s profile for 3 months",
   "no_more_profiles": "You've seen everyone nearby. Check back later!",
   "daily_limit_reached": "You've reached your daily discovery limit. Upgrade to Premium for unlimited.",
+  "daily_limit_remaining": "{count, plural, one{# profile remaining today} other{# profiles remaining today}}",
+  "daily_limit_resets": "Resets at {time}",
   "filters": "Filters",
-  "clear_filters": "Clear filters"
+  "filters_heading": "Filter creators",
+  "filters_a11y": "Open filters drawer",
+  "clear_filters": "Clear filters",
+  "apply_filters": "Apply filters",
+  "filter_vocation": "Vocation",
+  "filter_location": "Location",
+  "filter_radius": "Distance",
+  "filter_remote": "Remote only",
+  "filter_remote_a11y": "Show remote-only creators toggle",
+  "filter_style_tags": "Style tags",
+  "filters_active": "{count, plural, one{# filter active} other{# filters active}}",
+  "profile_card": {
+    "a11y_label": "{name}, {vocations}, {location}. Tap to view full profile.",
+    "a11y_label_no_location": "{name}, {vocations}. Tap to view full profile.",
+    "last_active": "Active {relativeTime}",
+    "last_active_a11y": "Last active {relativeTime}",
+    "vocation_chip_a11y": "{vocation} vocation",
+    "avatar_a11y": "{name}'s profile photo"
+  },
+  "swipe_card": {
+    "a11y_label": "{name} — tap to view profile. Swipe right to save, left to pass.",
+    "hide_btn_a11y": "Hide {name}'s profile for 3 months",
+    "save_btn_a11y": "Save {name}'s profile",
+    "pass_btn_a11y": "Pass on {name}"
+  },
+  "empty_state": {
+    "heading": "No creators found",
+    "body": "Try adjusting your filters or check back later.",
+    "clear_filters_btn": "Clear all filters"
+  },
+  "profile_detail": {
+    "back_btn_a11y": "Go back to feed",
+    "avatar_a11y": "{name}'s profile photo",
+    "vibe_check_btn": "Send Vibe Check",
+    "vibe_check_btn_a11y": "Send {name} a Vibe Check to request collaboration",
+    "save_btn": "Save profile",
+    "save_btn_a11y": "Save {name}'s profile for later",
+    "share_btn": "Share profile",
+    "share_btn_a11y": "Share {name}'s profile",
+    "portfolio_section": "Portfolio",
+    "portfolio_item_a11y": "{title} — {type}. Tap to view.",
+    "portfolio_empty": "No portfolio items shared.",
+    "collab_section": "Past collabs",
+    "bio_section": "About",
+    "vocations_section": "Vocations"
+  },
+  "saved_list": {
+    "heading": "Saved profiles",
+    "empty_heading": "No saved profiles",
+    "empty_body": "Profiles you save will appear here.",
+    "remove_btn_a11y": "Remove {name} from saved"
+  }
 }

@@ -12,16 +12,27 @@
   },
   "dependencies": {
     "@colab/api-types": "workspace:*",
+    "@colab/i18n": "workspace:*",
     "@colab/ui": "workspace:*",
     "@sentry/nextjs": "^8.49.0",
+    "i18next": "^23.16.8",
+    "react-i18next": "^15.2.0",
+    "i18next-icu": "^2.3.0",
+    "i18next-http-backend": "^2.7.0",
+    "i18next-browser-languagedetector": "^8.0.0",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "@playwright/test": "^1.49.0",
     "@types/node": "^22.12.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "stylelint": "^16.0.0",
+    "stylelint-a11y": "^1.2.3",
     "typescript": "^5.7.2"
   }
 }
