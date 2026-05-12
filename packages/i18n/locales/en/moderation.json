@@ -1,0 +1,13 @@
+{
+  "report_title": "Report",
+  "report_reason": "Why are you reporting this?",
+  "reason_spam": "Spam",
+  "reason_harassment": "Harassment or threats",
+  "reason_inappropriate": "Inappropriate content",
+  "reason_ip": "Intellectual property violation",
+  "reason_other": "Other",
+  "report_submitted": "Report submitted. Our team will review it.",
+  "content_removed": "This content has been removed for violating our Community Guidelines.",
+  "account_suspended": "Your account has been temporarily suspended.",
+  "appeal": "Appeal this decision"
+}

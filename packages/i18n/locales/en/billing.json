@@ -1,0 +1,16 @@
+{
+  "title": "Billing & Subscription",
+  "current_plan": "Current Plan",
+  "free": "Free",
+  "premium": "Premium",
+  "premium_pro": "Premium Pro",
+  "upgrade": "Upgrade",
+  "manage_subscription": "Manage Subscription",
+  "cancel_subscription": "Cancel Subscription",
+  "renews_on": "Renews {{date}}",
+  "credits_balance": "{{balance}} AI credits",
+  "buy_credits": "Buy Credits",
+  "billing_history": "Billing History",
+  "request_refund": "Request Refund",
+  "refund_policy": "Full refund within 14 days, no questions asked."
+}

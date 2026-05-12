@@ -1,0 +1,14 @@
+{
+  "message_placeholder": "Message {{name}}...",
+  "send": "Send",
+  "file_too_large": "File too large. Max {{size}}.",
+  "unsupported_file": "File type not supported.",
+  "voice_note": "Voice note",
+  "image": "Image",
+  "document": "Document",
+  "report": "Report this conversation",
+  "block": "Block {{name}}",
+  "export_chat": "Export Chat (Premium)",
+  "ai_command_hint": "Type / for AI commands",
+  "offline_queued": "Message queued — will send when you're back online"
+}

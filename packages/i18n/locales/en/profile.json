@@ -1,0 +1,20 @@
+{
+  "my_profile": "My Profile",
+  "edit_profile": "Edit Profile",
+  "display_name": "Display Name",
+  "bio": "Bio",
+  "bio_placeholder": "Tell creators what you're about (280 chars)",
+  "obsessed_with": "Obsessed with",
+  "obsessed_with_placeholder": "What are you into right now? (140 chars)",
+  "location": "Location",
+  "radius": "Discovery Radius",
+  "open_to_remote": "Open to remote",
+  "vocations": "Vocations",
+  "portfolio": "Portfolio",
+  "add_portfolio_item": "Add portfolio item",
+  "valid_profile_badge": "Valid Profile",
+  "collab_count": "{{count}} collabs",
+  "last_active": "Last active {{time}}",
+  "save_profile": "Save profile",
+  "profile_saved": "Profile saved!"
+}

@@ -1,0 +1,18 @@
+{
+  "title": "Help & Support",
+  "faq": "FAQ",
+  "contact_us": "Contact Us",
+  "new_ticket": "New Support Ticket",
+  "ticket_category": "Category",
+  "ticket_description": "Describe your issue",
+  "submit_ticket": "Submit",
+  "ticket_submitted": "Ticket submitted. We'll get back to you within {{sla}}.",
+  "ticket_status": "Status",
+  "open": "Open",
+  "in_progress": "In Progress",
+  "resolved": "Resolved",
+  "csat_prompt": "How did we do?",
+  "community_guidelines": "Community Guidelines",
+  "terms_of_service": "Terms of Service",
+  "privacy_policy": "Privacy Policy"
+}

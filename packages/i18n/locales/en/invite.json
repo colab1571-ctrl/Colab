@@ -1,0 +1,15 @@
+{
+  "vibe_check": "Vibe Check",
+  "send_vibe_check": "Send Vibe Check",
+  "vibe_check_placeholder": "Introduce yourself and why you'd like to collaborate (250 chars max)",
+  "accept": "Accept",
+  "reject": "Pass",
+  "match_title": "It's a Match!",
+  "match_body": "You and {{name}} both want to collaborate.",
+  "start_chatting": "Start Chatting",
+  "requests_sent": "Requests Sent",
+  "requests_received": "Requests Received",
+  "invite_limit_free": "{{remaining}} of 5 weekly Vibe Checks remaining",
+  "invite_limit_reached": "You've used all your weekly Vibe Checks. Reset in {{days}}d.",
+  "upgrade_for_unlimited": "Get Premium for unlimited Vibe Checks"
+}
