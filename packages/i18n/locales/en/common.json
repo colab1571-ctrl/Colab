@@ -1,5 +1,6 @@
 {
   "app_name": "{{brandName}}",
+  "brand_name": "<BRAND_NAME>",
   "loading": "Loading...",
   "error": "Something went wrong",
   "retry": "Try again",

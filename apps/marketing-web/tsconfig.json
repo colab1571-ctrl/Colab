@@ -13,6 +13,6 @@
       "@colab/ui": ["../../packages/ui/src/index.ts"]
     }
   },
-  "include": ["src", "next.config.ts"],
+  "include": ["src", "content", "next.config.ts", "next-sitemap.config.js", "scripts"],
   "exclude": ["node_modules"]
 }

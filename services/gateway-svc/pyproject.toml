@@ -9,6 +9,10 @@ dependencies = [
     "uvicorn[standard]>=0.32,<1",
     "httpx>=0.27,<1",
     "python-multipart>=0.0.12",
+    # DB + migrations (for waitlist_emails table — spec 017 marketing-web integration)
+    "alembic>=1.13,<2",
+    "sqlalchemy>=2.0,<3",
+    "asyncpg>=0.29,<1",
 ]
 
 [build-system]
