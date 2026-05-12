@@ -1,0 +1,97 @@
+# collab-svc Helm values
+# Inherits base chart defaults from charts/svc/values.yaml
+
+svc:
+  image:
+    repository: ""  # ECR repo URI — set by CI (e.g., 123456789.dkr.ecr.us-east-1.amazonaws.com/collab-svc)
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  envFromSecret: "collab-svc-env"
+
+  externalSecret:
+    remoteRef: "colab/prod/collab-svc/env"
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  env:
+    ENV: "production"
+    COLLAB_NUDGE_DAYS: "14"
+    COLLAB_ARCHIVE_DAYS: "30"
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilization: 70
+
+# ---------------------------------------------------------------------------
+# Celery export worker — handles collab_export, collab_archive queues
+# ---------------------------------------------------------------------------
+worker:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ""  # Same ECR repo as API, same image, different CMD
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  command: ["celery", "-A", "app.workers.celery_app", "worker"]
+  args:
+    - "--loglevel=info"
+    - "--queues=collab_export,collab_archive"
+    - "--concurrency=4"
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"  # WeasyPrint needs headroom for PDF rendering
+
+# ---------------------------------------------------------------------------
+# Celery Beat — inactivity cadence (single replica, no HPA)
+# ---------------------------------------------------------------------------
+beat:
+  enabled: true
+  replicaCount: 1  # Exactly one Beat scheduler
+  image:
+    repository: ""
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  command: ["celery", "-A", "app.workers.celery_app", "beat"]
+  args:
+    - "--loglevel=info"
+    - "--scheduler=celery.beat:PersistentScheduler"
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+# ---------------------------------------------------------------------------
+# Alembic migration job (runs on deploy, before API pod swap)
+# ---------------------------------------------------------------------------
+migrate:
+  enabled: true
+  command: ["alembic", "upgrade", "head"]
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"

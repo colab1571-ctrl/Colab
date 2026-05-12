@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Colab — Chat Export</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 2cm 2.5cm;
+      @bottom-center {
+        content: "Colab — Confidential — {{ collab_id }} | Page " counter(page) " of " counter(pages);
+        font-size: 9pt;
+        color: #888;
+      }
+    }
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.5;
+      color: #1a1a1a;
+    }
+    .cover {
+      text-align: center;
+      padding-top: 80px;
+      page-break-after: always;
+    }
+    .cover h1 {
+      font-size: 28pt;
+      color: #4f46e5;
+      margin-bottom: 8px;
+    }
+    .cover .subtitle {
+      font-size: 13pt;
+      color: #555;
+    }
+    .cover .meta {
+      margin-top: 40px;
+      text-align: left;
+      display: inline-block;
+      background: #f8f8f8;
+      border-radius: 8px;
+      padding: 20px 30px;
+    }
+    .cover .meta table { border-collapse: collapse; }
+    .cover .meta td { padding: 4px 12px 4px 0; }
+    .cover .meta td:first-child { font-weight: bold; color: #555; }
+    .cover .watermark {
+      margin-top: 60px;
+      font-size: 9pt;
+      color: #bbb;
+    }
+    .transcript h2 {
+      font-size: 14pt;
+      color: #4f46e5;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 6px;
+      margin-top: 0;
+    }
+    .message {
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+    .message .header {
+      font-size: 9pt;
+      color: #888;
+      margin-bottom: 2px;
+    }
+    .message .sender {
+      font-weight: bold;
+      color: #333;
+    }
+    .message .body {
+      background: #f4f4f8;
+      border-radius: 6px;
+      padding: 8px 12px;
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+    .message.media .body {
+      font-style: italic;
+      color: #666;
+    }
+    .no-messages {
+      color: #999;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <!-- Cover page -->
+  <div class="cover">
+    <h1>Colab</h1>
+    <div class="subtitle">Collaboration Chat Export</div>
+    <div class="meta">
+      <table>
+        <tr>
+          <td>Collaboration ID:</td>
+          <td>{{ collab_id }}</td>
+        </tr>
+        <tr>
+          <td>Export ID:</td>
+          <td>{{ export_id }}</td>
+        </tr>
+        <tr>
+          <td>Generated:</td>
+          <td>{{ generated_at }}</td>
+        </tr>
+        <tr>
+          <td>Messages:</td>
+          <td>{{ message_count }}</td>
+        </tr>
+        <tr>
+          <td>Content Hash:</td>
+          <td style="font-family: monospace; font-size: 9pt;">{{ content_hash }}</td>
+        </tr>
+      </table>
+    </div>
+    <div class="watermark">
+      This document is confidential and intended solely for the named participants.
+      SHA-256 hash covers all message IDs in chronological order.
+    </div>
+  </div>
+
+  <!-- Transcript -->
+  <div class="transcript">
+    <h2>Message Transcript</h2>
+    {% if messages %}
+      {% for msg in messages %}
+      <div class="message{% if msg.type != 'text' %} media{% endif %}">
+        <div class="header">
+          <span class="sender">{{ msg.sender }}</span>
+          &nbsp;·&nbsp;
+          {{ msg.created_at }}
+          {% if msg.type != 'text' %}
+            &nbsp;·&nbsp;[{{ msg.type }}]
+          {% endif %}
+        </div>
+        <div class="body">
+          {% if msg.body %}
+            {{ msg.body }}
+          {% else %}
+            [media attachment — see media.zip]
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="no-messages">No messages to display.</p>
+    {% endif %}
+  </div>
+</body>
+</html>
