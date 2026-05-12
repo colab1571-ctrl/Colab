@@ -1,0 +1,42 @@
+<mjml>
+  <mj-head>
+    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" />
+      <mj-button background-color="#6c63ff" color="#ffffff" border-radius="8px" font-weight="600" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f4f4f8">
+    <mj-section background-color="#6c63ff" padding="24px 0">
+      <mj-column>
+        <mj-text align="center" font-size="24px" font-weight="700" color="#ffffff">Colab</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="40px 24px">
+      <mj-column>
+        {% if preview_url %}
+        <mj-image src="{{ preview_url }}" width="300px" align="center" border-radius="8px" />
+        {% endif %}
+        <mj-text align="center" font-size="20px" font-weight="700" color="#1a1a2e" padding-top="16px">
+          Your AI Collab Preview is ready!
+        </mj-text>
+        <mj-text align="center" color="#555">
+          Type: {{ mockup_type | title }} &bull; Expires: {{ expires_at }}
+        </mj-text>
+        <mj-text align="center" color="#d32f2f" font-weight="600">
+          View it before it expires!
+        </mj-text>
+        <mj-button href="https://app.colab.app/collabs/{{ collab_id }}/mockup/{{ mockup_id }}">
+          View Now
+        </mj-button>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#f4f4f8" padding="16px 24px">
+      <mj-column>
+        <mj-text align="center" font-size="12px" color="#888">
+          <a href="{{ unsubscribe_url | default('https://app.colab.app/notifications/preferences') }}" style="color:#888;">Unsubscribe</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
