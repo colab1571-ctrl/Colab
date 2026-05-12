@@ -21,7 +21,7 @@ dependencies = [
     "httpx>=0.27,<1",
     "celery[rabbitmq]>=5.4,<6",
     "imagehash>=4.3,<5",
-    "Pillow>=11.0,<12",
+    "Pillow>=11.0,<13",
     "pyacoustid>=1.3,<2",
     "posthog>=3.5,<4",
 ]
