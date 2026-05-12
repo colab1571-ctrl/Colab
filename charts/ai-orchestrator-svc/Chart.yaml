@@ -1,0 +1,10 @@
+apiVersion: v2
+name: ai-orchestrator-svc
+description: Colab ai-orchestrator-svc — 5 in-chat AI commands, AI Collab Preview mockup generation, Replicate webhook, credit metering.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  - name: svc
+    version: "*"
+    repository: "file://../svc"

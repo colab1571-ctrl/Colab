@@ -1,0 +1,201 @@
+# ai-orchestrator-svc Helm values
+# Inherits from charts/svc base chart.
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI; e.g. <account>.dkr.ecr.us-east-1.amazonaws.com/colab/ai-orchestrator-svc
+    tag: "latest"
+
+  replicas: 2  # Minimum 2 for HA; HPA scales further
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"  # PIL + pydub in-memory processing needs headroom
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: ""  # IRSA role: s3:PutObject on colab-ai-mockups, secretsmanager:GetSecretValue
+
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app: ai-orchestrator-svc
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+    AWS_REGION: "us-east-1"
+
+    # Internal service URLs (Kubernetes ClusterIP DNS)
+    AI_BILLING_SVC_URL: "http://billing-svc:8000"
+    AI_CHAT_SVC_URL: "http://chat-svc:8000"
+    AI_MODERATION_SVC_URL: "http://moderation-svc:8000"
+    AI_NOTIFICATION_SVC_URL: "http://notification-svc:8000"
+    AI_COLLAB_SVC_URL: "http://collab-svc:8000"
+    AI_PROFILE_SVC_URL: "http://profile-svc:8000"
+
+    # Replicate model selection
+    AI_REPLICATE_MODEL_IMAGE_BASIC: "stability-ai/sdxl"
+    AI_REPLICATE_MODEL_IMAGE_PRO: "black-forest-labs/flux-1.1-pro"
+    AI_REPLICATE_MODEL_AUDIO_BASIC: "meta/musicgen"
+    AI_REPLICATE_MODEL_AUDIO_PRO: "stability-ai/stable-audio"
+
+    # Webhook URL (must be publicly accessible for Replicate to call)
+    AI_REPLICATE_WEBHOOK_URL: "https://api.colab.app/webhooks/replicate"
+
+    # S3
+    AI_S3_BUCKET: "colab-ai-mockups"
+    AI_S3_CLOUDFRONT_DOMAIN: "cdn.colab.app"
+    AI_S3_SIGNED_URL_TTL_SECONDS: "300"
+
+    # Rate limiting
+    AI_COMMAND_RATE_PER_MINUTE: "10"
+
+    # Credit costs (seed values — override via admin config)
+    AI_CREDIT_MOCKUP_IMAGE_BASIC: "20"
+    AI_CREDIT_MOCKUP_IMAGE_PRO: "50"
+    AI_CREDIT_MOCKUP_AUDIO_BASIC: "15"
+    AI_CREDIT_MOCKUP_AUDIO_PRO: "40"
+    AI_CREDIT_SUMMARIZE_CHAT: "5"
+    AI_CREDIT_BRAINSTORM: "5"
+    AI_CREDIT_PALETTE: "2"
+
+    # Moderation thresholds
+    AI_MODERATION_BLOCK_THRESHOLD: "0.7"
+    AI_MODERATION_PRE_GEN_THRESHOLD: "0.4"
+
+    # OpenAI model selection
+    AI_OPENAI_MODEL_TEXT: "gpt-4.1"
+    AI_OPENAI_MODEL_PALETTE: "gpt-4.1-mini"
+    AI_OPENAI_TIMEOUT_SECONDS: "30"
+    AI_OPENAI_MAX_RETRIES: "2"
+
+    # Font path (bundled in Docker image)
+    AI_FONT_PATH: "/app/fonts/DejaVuSans-Bold.ttf"
+
+  envFromSecret: "ai-orchestrator-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRefs:
+      OPENAI_API_KEY:
+        key: "colab/ai-orchestrator/openai"
+        property: "api_key"
+      REPLICATE_API_TOKEN:
+        key: "colab/ai-orchestrator/replicate"
+        property: "api_token"
+      REPLICATE_WEBHOOK_SECRET:
+        key: "colab/ai-orchestrator/replicate"
+        property: "webhook_secret"
+      DATABASE_URL:
+        key: "colab/ai-orchestrator/db"
+        property: "url"
+      REDIS_URL:
+        key: "colab/ai-orchestrator/redis"
+        property: "url"
+      RABBITMQ_URL:
+        key: "colab/ai-orchestrator/rabbitmq"
+        property: "url"
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: 8000
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    failureThreshold: 3
+
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    failureThreshold: 3
+
+  terminationGracePeriodSeconds: 30
+
+  command:
+    - uvicorn
+    - app.main:app
+    - --host
+    - "0.0.0.0"
+    - --port
+    - "8000"
+    - --loop
+    - uvloop
+    - --workers
+    - "1"
+
+# ---------------------------------------------------------------------------
+# Celery Workers
+# ---------------------------------------------------------------------------
+celeryWorker:
+  enabled: true
+  replicas: 2
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"  # PIL image processing can use 2–3 GB peak
+  command:
+    - celery
+    - -A
+    - app.workers.celery_app
+    - worker
+    - --loglevel=info
+    - --concurrency=4
+    - --queues=ai_generation,ai_default
+
+# ---------------------------------------------------------------------------
+# Celery Beat — lifespan expiry scheduler
+# ---------------------------------------------------------------------------
+celeryBeat:
+  enabled: true
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+  command:
+    - celery
+    - -A
+    - app.workers.celery_app
+    - beat
+    - --loglevel=info
+  schedule:
+    expire_mockup_assets:
+      task: "app.workers.expire_tasks.expire_mockup_assets"
+      # Runs hourly at :00 — sets active=false for MockupAssets past expires_at
+      schedule: "0 * * * *"
+    expire_mockup_consents:
+      task: "app.workers.expire_tasks.expire_pending_consents"
+      # Runs hourly at :30 — expires pending_b consents older than 48h
+      schedule: "30 * * * *"
