@@ -1,0 +1,13 @@
+{
+  "title": "Notifications",
+  "new_match": "New match! {{name}} accepted your Vibe Check.",
+  "new_request": "{{name}} sent you a Vibe Check.",
+  "request_accepted": "{{name}} accepted your Vibe Check. You matched!",
+  "new_message": "New message from {{name}}",
+  "file_shared": "{{name}} shared a file.",
+  "ai_mockup_ready": "Your AI mockup is ready.",
+  "collab_nudge": "Your collaboration with {{name}} has been quiet.",
+  "collab_status_changed": "Collaboration status updated: {{status}}",
+  "preferences": "Notification Preferences",
+  "no_notifications": "You're all caught up!"
+}

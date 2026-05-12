@@ -1,0 +1,23 @@
+{
+  "name": "@colab/design-tokens",
+  "version": "0.1.0",
+  "description": "Colab design tokens — single source of truth across web and mobile",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs --watch",
+    "lint": "echo 'No linting for design-tokens'"
+  },
+  "exports": {
+    "./css": "./build/css/tokens.css",
+    "./tailwind-theme": "./build/css/tailwind-theme.css",
+    "./tailwind-preset": "./build/tailwind/preset.js",
+    "./rn-theme": "./build/rn/theme.ts",
+    "./json": "./build/json/tokens.json"
+  },
+  "files": ["build", "tokens"],
+  "devDependencies": {
+    "style-dictionary": "^4.3.3"
+  }
+}

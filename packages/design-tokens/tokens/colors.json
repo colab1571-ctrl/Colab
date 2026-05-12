@@ -1,0 +1,39 @@
+{
+  "color": {
+    "brand": {
+      "primary": { "value": "#5B5BD6", "type": "color", "a11y": { "contrast_on_white": 4.6 } },
+      "secondary": { "value": "#FFB454", "type": "color", "a11y": { "contrast_on_white": 2.8 } },
+      "accent": { "value": "#E54D2E", "type": "color", "a11y": { "contrast_on_white": 4.5 } }
+    },
+    "neutral": {
+      "0":   { "value": "#FFFFFF", "type": "color" },
+      "50":  { "value": "#F9F9F9", "type": "color" },
+      "100": { "value": "#F0F0F0", "type": "color" },
+      "200": { "value": "#E0E0E0", "type": "color" },
+      "300": { "value": "#C8C8C8", "type": "color" },
+      "400": { "value": "#A0A0A0", "type": "color" },
+      "500": { "value": "#6E6E6E", "type": "color" },
+      "600": { "value": "#4C4C4C", "type": "color" },
+      "700": { "value": "#333333", "type": "color" },
+      "800": { "value": "#1F1F1F", "type": "color" },
+      "900": { "value": "#0B0B0F", "type": "color" }
+    },
+    "semantic": {
+      "success": { "value": "#30A46C", "type": "color" },
+      "warning": { "value": "#F76B15", "type": "color" },
+      "error":   { "value": "#E5484D", "type": "color" },
+      "info":    { "value": "#0091FF", "type": "color" }
+    },
+    "surface": {
+      "background":   { "value": "{color.neutral.0}", "type": "color" },
+      "foreground":   { "value": "{color.neutral.900}", "type": "color" },
+      "card":         { "value": "{color.neutral.0}", "type": "color" },
+      "card-fg":      { "value": "{color.neutral.900}", "type": "color" },
+      "muted":        { "value": "{color.neutral.100}", "type": "color" },
+      "muted-fg":     { "value": "{color.neutral.500}", "type": "color" },
+      "border":       { "value": "{color.neutral.200}", "type": "color" },
+      "input":        { "value": "{color.neutral.200}", "type": "color" },
+      "ring":         { "value": "{color.brand.primary}", "type": "color" }
+    }
+  }
+}

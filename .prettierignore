@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+dist
+build
+coverage
+.turbo
+packages/api-types/**/*.ts
+*.lock
+*.lock.json

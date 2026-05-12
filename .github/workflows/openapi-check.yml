@@ -1,0 +1,53 @@
+name: OpenAPI Drift Check
+
+on:
+  pull_request:
+    branches: [main, "feature/**"]
+    paths:
+      - "services/**"
+      - "packages/api-types/**"
+      - "tools/openapi-codegen/**"
+
+jobs:
+  openapi-check:
+    name: Check generated clients are up-to-date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "9.15.0"
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.5.4"
+
+      - name: Install Python deps
+        run: uv sync --all-packages
+
+      - name: Start services (static mode — uses committed openapi.json)
+        run: echo "Using committed static specs — no live services needed"
+
+      - name: Regenerate clients
+        run: node tools/openapi-codegen/generate.mjs
+
+      - name: Format
+        run: pnpm prettier --write 'packages/api-types/**/*.ts'
+
+      - name: Check for drift
+        run: |
+          git diff --exit-code packages/api-types/ || {
+            echo "ERROR: Generated TS clients are out of date. Run 'make openapi' and commit the result."
+            exit 1
+          }

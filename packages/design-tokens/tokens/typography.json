@@ -1,0 +1,35 @@
+{
+  "font": {
+    "family": {
+      "sans": { "value": "Inter, system-ui, -apple-system, sans-serif", "type": "fontFamilies" },
+      "mono": { "value": "JetBrains Mono, Menlo, monospace", "type": "fontFamilies" }
+    },
+    "size": {
+      "xs":  { "value": "12", "type": "fontSizes" },
+      "sm":  { "value": "14", "type": "fontSizes" },
+      "md":  { "value": "16", "type": "fontSizes" },
+      "lg":  { "value": "18", "type": "fontSizes" },
+      "xl":  { "value": "20", "type": "fontSizes" },
+      "2xl": { "value": "24", "type": "fontSizes" },
+      "3xl": { "value": "30", "type": "fontSizes" },
+      "4xl": { "value": "36", "type": "fontSizes" },
+      "5xl": { "value": "48", "type": "fontSizes" }
+    },
+    "weight": {
+      "regular":   { "value": "400", "type": "fontWeights" },
+      "medium":    { "value": "500", "type": "fontWeights" },
+      "semibold":  { "value": "600", "type": "fontWeights" },
+      "bold":      { "value": "700", "type": "fontWeights" }
+    },
+    "line-height": {
+      "tight":  { "value": "1.25", "type": "lineHeights" },
+      "normal": { "value": "1.5",  "type": "lineHeights" },
+      "relaxed": { "value": "1.75", "type": "lineHeights" }
+    },
+    "letter-spacing": {
+      "tight":  { "value": "-0.025em", "type": "letterSpacing" },
+      "normal": { "value": "0",        "type": "letterSpacing" },
+      "wide":   { "value": "0.025em",  "type": "letterSpacing" }
+    }
+  }
+}

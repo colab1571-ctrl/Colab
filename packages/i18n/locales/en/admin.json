@@ -1,0 +1,20 @@
+{
+  "dashboard": "Dashboard",
+  "moderation_queue": "Moderation Queue",
+  "support_queue": "Support Queue",
+  "users": "Users",
+  "billing_tiers": "Billing Tiers",
+  "audit_log": "Audit Log",
+  "feature_flags": "Feature Flags",
+  "actions": "Actions",
+  "warn": "Warn",
+  "mute_1h": "Mute 1 hour",
+  "mute_24h": "Mute 24 hours",
+  "mute_7d": "Mute 7 days",
+  "ban": "Permanent Ban",
+  "delete_account": "Delete Account",
+  "restore": "Restore Content",
+  "hide_content": "Hide Content",
+  "confirm_action": "Confirm this action",
+  "reason_required": "Reason (required)"
+}

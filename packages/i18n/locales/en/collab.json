@@ -1,0 +1,15 @@
+{
+  "active_collabs": "Active Collaborations",
+  "past_collabs": "Past Collaborations",
+  "status_deciding": "Still Deciding",
+  "status_in_progress": "In Progress",
+  "status_completed": "Completed",
+  "status_didnt_work_out": "Didn't Work Out",
+  "update_status": "Update Status",
+  "end_collab": "End Collaboration",
+  "feedback_title": "How did it go?",
+  "feedback_thumb_up": "Thumbs up",
+  "feedback_thumb_down": "Thumbs down",
+  "inactivity_nudge": "Your collaboration with {{name}} has been quiet for 14 days. Still going?",
+  "auto_archived": "This collaboration was auto-archived after 30 days of inactivity."
+}

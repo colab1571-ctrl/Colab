@@ -3,7 +3,7 @@
   "project": "colab",
   "repo": "https://github.com/colab1571-ctrl/Colab.git",
   "primary_doc": "/Users/amays/Downloads/Main document.docx",
-  "pipeline_phase": "7-p0-implementation-in-progress",
+  "pipeline_phase": "7-p1-implementation-complete",
   "completed_phases": [
     "0-git-setup",
     "1-parse-requirements",
@@ -17,9 +17,11 @@
   ],
   "phase_7_state": {
     "current_phase": "7",
-    "current_feature": "specs/001-infrastructure",
+    "current_feature": "specs/002-shared-platform",
     "current_task": null,
-    "completed_features": [],
+    "completed_features": [
+      "specs/001-infrastructure"
+    ],
     "completed_tasks": [
       "T-A-03",
       "T-A-04",
@@ -69,7 +71,48 @@
       "T-O-02",
       "T-P-04",
       "T-P-07",
-      "T-P-08"
+      "T-P-08",
+      "P1-C1",
+      "P1-C2",
+      "P1-C3",
+      "P1-C4",
+      "P1-C5",
+      "P1-C6",
+      "P1-C7",
+      "P1-C8",
+      "P1-C9",
+      "P1-C10",
+      "P1-C11",
+      "P1-G1",
+      "P1-G2",
+      "P1-G3",
+      "P1-G4",
+      "P1-G5",
+      "P1-O1",
+      "P1-O2",
+      "P1-O3",
+      "P1-M1",
+      "P1-M2",
+      "P1-M3",
+      "P1-M4",
+      "P1-M5",
+      "P1-M6",
+      "P1-W1",
+      "P1-W2",
+      "P1-W3",
+      "P1-W4",
+      "P1-W5",
+      "P1-T1",
+      "P1-T2",
+      "P1-I1",
+      "P1-I2",
+      "P1-I3",
+      "P1-I4",
+      "P1-I5",
+      "P1-I6",
+      "P1-I7",
+      "P1-I8",
+      "P1-I9"
     ],
     "blocked_tasks": [
       {
@@ -111,6 +154,18 @@
       {
         "id": "T-C-10",
         "reason": "Requires live EKS cluster to create access entries via aws_eks_access_entry. Blocked on T-A-01/T-A-02."
+      },
+      {
+        "id": "P1-M6-EAS-BUILD",
+        "reason": "EAS build execution (eas build --profile development) requires live EXPO_TOKEN and EAS project setup. Manifests + eas.json are written; user must run 'eas build' manually after expo login."
+      },
+      {
+        "id": "P1-G5-DEPLOY",
+        "reason": "Actual Helm deployment to staging requires live EKS cluster + ECR images. Workflow and values.yaml are written; blocked on AWS credentials (T-A-01/T-A-02)."
+      },
+      {
+        "id": "P1-I2-ECR",
+        "reason": "ECR repo provisioning blocked on AWS credentials. The Terraform module (terraform/modules/s3) provides the pattern; a dedicated ECR module should be added in the next infra pass."
       }
     ],
     "open_blockers": [
@@ -154,11 +209,21 @@
     "helm_charts": [
       "charts/svc/",
       "charts/_template-service/",
-      "charts/db-bootstrap/"
+      "charts/db-bootstrap/",
+      "charts/gateway-svc/",
+      "charts/hello-svc/"
     ],
     "github_actions": [
       ".github/workflows/terraform.yml",
-      ".github/workflows/oidc-smoke.yml"
+      ".github/workflows/oidc-smoke.yml",
+      ".github/workflows/lint.yml",
+      ".github/workflows/test.yml",
+      ".github/workflows/build-and-push.yml",
+      ".github/workflows/deploy.yml",
+      ".github/workflows/web-build.yml",
+      ".github/workflows/mobile-build.yml",
+      ".github/workflows/openapi-check.yml",
+      ".github/workflows/release.yml"
     ],
     "scripts": [
       "scripts/seed_vendor_secrets.sh",
@@ -168,7 +233,22 @@
       "scripts/smoke/ses_send.sh",
       "scripts/smoke/sns_push.sh",
       "scripts/smoke/tag_audit.sh"
-    ]
+    ],
+    "p1_artifacts": {
+      "monorepo_root": ["package.json", "pnpm-workspace.yaml", "pyproject.toml", "tsconfig.base.json", "turbo.json", "Makefile", ".nvmrc", ".python-version", ".editorconfig", ".prettierrc"],
+      "colab_common": "packages/colab_common/",
+      "design_tokens": "packages/design-tokens/",
+      "ui_library": "packages/ui/",
+      "api_types": "packages/api-types/",
+      "i18n": "packages/i18n/",
+      "gateway_svc": "services/gateway-svc/",
+      "hello_svc": "services/hello-svc/",
+      "openapi_codegen": "tools/openapi-codegen/",
+      "mobile_app": "apps/mobile/",
+      "consumer_web": "apps/consumer-web/",
+      "admin_web": "apps/admin-web/",
+      "marketing_web": "apps/marketing-web/"
+    }
   },
   "execution_settings": {
     "client_platform": "React Native + Expo (iOS + Android)",

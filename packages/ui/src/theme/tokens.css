@@ -1,0 +1,100 @@
+/**
+ * Design token CSS variables — generated from @colab/design-tokens.
+ * DO NOT EDIT MANUALLY. Run `pnpm --filter @colab/design-tokens build` to regenerate.
+ *
+ * In Tailwind v4 this file is loaded via @import in globals.css and consumed by @theme.
+ */
+
+:root {
+  /* Brand colors */
+  --color-brand-primary: #5b5bd6;
+  --color-brand-secondary: #ffb454;
+  --color-brand-accent: #e54d2e;
+
+  /* Neutral palette */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f9f9f9;
+  --color-neutral-100: #f0f0f0;
+  --color-neutral-200: #e0e0e0;
+  --color-neutral-300: #c8c8c8;
+  --color-neutral-400: #a0a0a0;
+  --color-neutral-500: #6e6e6e;
+  --color-neutral-600: #4c4c4c;
+  --color-neutral-700: #333333;
+  --color-neutral-800: #1f1f1f;
+  --color-neutral-900: #0b0b0f;
+
+  /* Semantic */
+  --color-success: #30a46c;
+  --color-warning: #f76b15;
+  --color-error: #e5484d;
+  --color-info: #0091ff;
+
+  /* Surface aliases */
+  --color-background: var(--color-neutral-0);
+  --color-foreground: var(--color-neutral-900);
+  --color-card: var(--color-neutral-0);
+  --color-card-foreground: var(--color-neutral-900);
+  --color-muted: var(--color-neutral-100);
+  --color-muted-foreground: var(--color-neutral-500);
+  --color-border: var(--color-neutral-200);
+  --color-input: var(--color-neutral-200);
+  --color-ring: var(--color-brand-primary);
+  --color-primary: var(--color-brand-primary);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-brand-secondary);
+  --color-secondary-foreground: var(--color-neutral-900);
+  --color-destructive: var(--color-error);
+  --color-destructive-foreground: #ffffff;
+
+  /* Spacing (4pt grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-11: 44px;
+  --space-12: 48px;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  --radius: var(--radius-md);
+
+  /* Typography */
+  --font-sans: Inter, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", Menlo, monospace;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+
+  /* Motion */
+  --motion-fast: 150ms;
+  --motion-normal: 250ms;
+  --motion-slow: 400ms;
+  --motion-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --motion-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  --color-background: var(--color-neutral-900);
+  --color-foreground: var(--color-neutral-0);
+  --color-card: var(--color-neutral-800);
+  --color-card-foreground: var(--color-neutral-0);
+  --color-muted: var(--color-neutral-800);
+  --color-muted-foreground: var(--color-neutral-400);
+  --color-border: var(--color-neutral-700);
+  --color-input: var(--color-neutral-700);
+  --color-primary-foreground: #ffffff;
+  --color-secondary-foreground: var(--color-neutral-0);
+}

@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-brand-primary: #5B5BD6;
+  --color-brand-secondary: #FFB454;
+}

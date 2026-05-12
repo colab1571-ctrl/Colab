@@ -1,0 +1,7 @@
+# Keep build outputs out of git EXCEPT the JSON snapshot for docs/handoff
+build/css/
+build/tailwind/
+build/rn/
+
+# Allow the JSON snapshot
+!build/json/tokens.json

@@ -1,0 +1,70 @@
+name: Build and Push
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      services:
+        description: "Space-separated list of services to build (leave empty for all)"
+        required: false
+        default: ""
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  discover-services:
+    name: Discover services
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set-matrix
+        run: |
+          if [ -n "${{ github.event.inputs.services }}" ]; then
+            SERVICES=$(echo "${{ github.event.inputs.services }}" | tr ' ' '\n' | jq -R . | jq -s .)
+          else
+            SERVICES=$(ls services/ | jq -R . | jq -s .)
+          fi
+          echo "matrix={\"service\":$(echo $SERVICES)}" >> $GITHUB_OUTPUT
+
+  build-and-push:
+    name: Build ${{ matrix.service }}
+    needs: discover-services
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.discover-services.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/colab-gha-${{ github.ref_name == 'main' && 'prod' || 'staging' }}
+          aws-region: us-east-1
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.ecr-login.outputs.registry }}/colab/${{ matrix.service }}:${{ github.sha }}
+            ${{ steps.ecr-login.outputs.registry }}/colab/${{ matrix.service }}:latest
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            IMAGE_TAG=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

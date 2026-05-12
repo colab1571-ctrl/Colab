@@ -1,0 +1,64 @@
+name: Mobile Build (EAS)
+
+on:
+  push:
+    tags: ["v*"]
+  schedule:
+    - cron: "0 2 * * *"  # Nightly at 2am UTC
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "EAS build profile"
+        required: true
+        type: choice
+        options: [development, preview, production]
+      platform:
+        description: "Platform"
+        required: true
+        type: choice
+        options: [ios, android, all]
+
+jobs:
+  build:
+    name: EAS Build (${{ inputs.profile || 'preview' }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "9.15.0"
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Expo + EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: EAS Build (iOS)
+        if: inputs.platform == 'ios' || inputs.platform == 'all' || github.event_name != 'workflow_dispatch'
+        run: eas build --platform ios --profile ${{ inputs.profile || 'preview' }} --non-interactive
+        working-directory: apps/mobile
+        env:
+          EXPO_PUBLIC_API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.SENTRY_DSN_RN }}
+          EXPO_PUBLIC_POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY_MOBILE }}
+
+      - name: EAS Build (Android)
+        if: inputs.platform == 'android' || inputs.platform == 'all' || github.event_name != 'workflow_dispatch'
+        run: eas build --platform android --profile ${{ inputs.profile || 'preview' }} --non-interactive
+        working-directory: apps/mobile
+
+      - name: EAS Submit to TestFlight + Play Internal (production only)
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.profile == 'production'
+        run: eas submit --platform all --non-interactive
+        working-directory: apps/mobile

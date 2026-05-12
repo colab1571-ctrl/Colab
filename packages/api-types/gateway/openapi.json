@@ -1,0 +1,134 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Colab Gateway Service",
+    "version": "0.1.0",
+    "description": "API Gateway — request routing, auth pre-check, rate-limit, CORS."
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "operationId": "healthz",
+        "summary": "Liveness probe",
+        "tags": ["health"],
+        "responses": {
+          "200": {
+            "description": "Service is alive",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "operationId": "readyz",
+        "summary": "Readiness probe",
+        "tags": ["health"],
+        "responses": {
+          "200": {
+            "description": "Service is ready",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReadyResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready"
+          }
+        }
+      }
+    },
+    "/version": {
+      "get": {
+        "operationId": "version",
+        "summary": "Image version info",
+        "tags": ["health"],
+        "responses": {
+          "200": {
+            "description": "Version info",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/VersionResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/flags": {
+      "get": {
+        "operationId": "getFlags",
+        "summary": "Get feature flags",
+        "tags": ["flags"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Feature flags",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FlagsResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "ok" }
+        },
+        "required": ["status"]
+      },
+      "ReadyResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "ok" },
+          "checks": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          }
+        },
+        "required": ["status", "checks"]
+      },
+      "VersionResponse": {
+        "type": "object",
+        "properties": {
+          "git_sha": { "type": "string" },
+          "image_tag": { "type": "string" },
+          "service": { "type": "string" }
+        },
+        "required": ["git_sha", "image_tag", "service"]
+      },
+      "FlagsResponse": {
+        "type": "object",
+        "properties": {
+          "ai_mockups_enabled": { "type": "boolean" },
+          "in_chat_ai_enabled": { "type": "boolean" },
+          "ads_enabled": { "type": "boolean" },
+          "marketing_notifications": { "type": "boolean" },
+          "region_allowlist": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["ai_mockups_enabled", "in_chat_ai_enabled", "ads_enabled", "marketing_notifications", "region_allowlist"]
+      }
+    }
+  }
+}

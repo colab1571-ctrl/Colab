@@ -1,0 +1,48 @@
+# hello-svc Helm values
+
+svc:
+  image:
+    repository: ""  # ECR URI set by CI
+    tag: "latest"
+
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: ""
+
+  env:
+    ENV: "staging"
+    LOG_LEVEL: "INFO"
+
+  envFromSecret: "hello-svc-env"
+
+  externalSecret:
+    refreshInterval: "1h"
+    secretStoreRef: "colab-cluster-store"
+    remoteRef: "colab/staging/hello-svc/env"
+
+  service:
+    port: 8000
+    type: ClusterIP
+
+  ingress:
+    enabled: false
+
+  hpa:
+    enabled: false
+
+  probes:
+    liveness:
+      path: /healthz
+    readiness:
+      path: /healthz
