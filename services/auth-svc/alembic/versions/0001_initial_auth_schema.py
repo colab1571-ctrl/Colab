@@ -19,21 +19,48 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
+# Use postgresql.ENUM with create_type=False so SQLAlchemy does NOT auto-create
+# We create the types explicitly via SQL to avoid ORM-level double-create bugs.
+email_status_enum = postgresql.ENUM(
+    "active", "bounced", "complained",
+    name="email_status_enum", create_type=False
+)
+identity_provider_enum = postgresql.ENUM(
+    "apple", "google", "email", "phone",
+    name="identity_provider_enum", create_type=False
+)
+doc_type_enum = postgresql.ENUM(
+    "tos", "privacy", "community_guidelines",
+    name="doc_type_enum", create_type=False
+)
+magic_link_purpose_enum = postgresql.ENUM(
+    "email_verify", "password_reset", "email_change", "phone_change",
+    name="magic_link_purpose_enum", create_type=False
+)
+
 
 def upgrade() -> None:
-    # Enums
+    # Create enum types explicitly (idempotent via DO block)
     op.execute(
-        "CREATE TYPE email_status_enum AS ENUM ('active', 'bounced', 'complained')"
+        "DO $$ BEGIN "
+        "  CREATE TYPE email_status_enum AS ENUM ('active', 'bounced', 'complained'); "
+        "EXCEPTION WHEN duplicate_object THEN null; END $$;"
     )
     op.execute(
-        "CREATE TYPE identity_provider_enum AS ENUM ('apple', 'google', 'email', 'phone')"
+        "DO $$ BEGIN "
+        "  CREATE TYPE identity_provider_enum AS ENUM ('apple', 'google', 'email', 'phone'); "
+        "EXCEPTION WHEN duplicate_object THEN null; END $$;"
     )
     op.execute(
-        "CREATE TYPE doc_type_enum AS ENUM ('tos', 'privacy', 'community_guidelines')"
+        "DO $$ BEGIN "
+        "  CREATE TYPE doc_type_enum AS ENUM ('tos', 'privacy', 'community_guidelines'); "
+        "EXCEPTION WHEN duplicate_object THEN null; END $$;"
     )
     op.execute(
-        "CREATE TYPE magic_link_purpose_enum AS ENUM "
-        "('email_verify', 'password_reset', 'email_change', 'phone_change')"
+        "DO $$ BEGIN "
+        "  CREATE TYPE magic_link_purpose_enum AS ENUM "
+        "  ('email_verify', 'password_reset', 'email_change', 'phone_change'); "
+        "EXCEPTION WHEN duplicate_object THEN null; END $$;"
     )
 
     # users
@@ -42,7 +69,7 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
         sa.Column("email", sa.String(255), nullable=True),
         sa.Column("email_verified_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("email_status", sa.Enum(name="email_status_enum", create_type=False), nullable=False, server_default="active"),
+        sa.Column("email_status", email_status_enum, nullable=False, server_default="active"),
         sa.Column("phone", sa.String(32), nullable=True),
         sa.Column("phone_verified_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("password_hash", sa.Text, nullable=True),
@@ -65,7 +92,7 @@ def upgrade() -> None:
         "identities",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("provider", sa.Enum(name="identity_provider_enum", create_type=False), nullable=False),
+        sa.Column("provider", identity_provider_enum, nullable=False),
         sa.Column("provider_subject", sa.String(512), nullable=False),
         sa.Column("linked_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
     )
@@ -94,7 +121,7 @@ def upgrade() -> None:
         "legal_acceptances",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("doc_type", sa.Enum(name="doc_type_enum", create_type=False), nullable=False),
+        sa.Column("doc_type", doc_type_enum, nullable=False),
         sa.Column("doc_version", sa.String(32), nullable=False),
         sa.Column("accepted_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
         sa.Column("ip", sa.String(45), nullable=True),
@@ -106,7 +133,7 @@ def upgrade() -> None:
         "magic_links",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("purpose", sa.Enum(name="magic_link_purpose_enum", create_type=False), nullable=False),
+        sa.Column("purpose", magic_link_purpose_enum, nullable=False),
         sa.Column("token_hash", sa.String(64), nullable=False),
         sa.Column("otp_hash", sa.String(64), nullable=True),
         sa.Column("new_value", sa.String(255), nullable=True),

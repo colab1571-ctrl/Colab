@@ -1,0 +1,261 @@
+# =============================================================================
+# Colab — Stage 2 Docker Compose
+# Scope: gateway, auth, profile, discovery + infra (postgres, redis, rabbitmq, localstack)
+# =============================================================================
+
+version: "3.9"
+
+x-build-context: &build-context
+  context: .
+
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  networks:
+    - colab
+
+services:
+  # ---------------------------------------------------------------------------
+  # Infrastructure
+  # ---------------------------------------------------------------------------
+
+  postgres:
+    build:
+      context: ./docker/postgres-colab
+      dockerfile: Dockerfile
+    image: colab/postgres:pg16-vector-postgis
+    <<: *service-defaults
+    environment:
+      POSTGRES_USER: colab
+      POSTGRES_PASSWORD: colab
+      POSTGRES_DB: colab
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U colab -d colab"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    <<: *service-defaults
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    <<: *service-defaults
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  localstack:
+    image: localstack/localstack:3
+    <<: *service-defaults
+    environment:
+      SERVICES: s3,secretsmanager,ses,sns,sqs,kms
+      DEBUG: 0
+      DEFAULT_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
+    ports:
+      - "4566:4566"
+    volumes:
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/health | grep -q '\"s3\": \"running\"' || curl -sf http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Migrations
+  # ---------------------------------------------------------------------------
+
+  migrate-auth:
+    build:
+      <<: *build-context
+      dockerfile: services/auth-svc/Dockerfile
+    command: ["sh", "-c", "/app/.venv/bin/python -m alembic -c alembic/alembic.ini upgrade head"]
+    env_file:
+      - services/auth-svc/.env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - colab
+    restart: "no"
+
+  migrate-profile:
+    build:
+      <<: *build-context
+      dockerfile: services/profile-svc/Dockerfile
+    command: ["sh", "-c", "/app/.venv/bin/python -m alembic -c alembic/alembic.ini upgrade head"]
+    env_file:
+      - services/profile-svc/.env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate-auth:
+        condition: service_completed_successfully
+    networks:
+      - colab
+    restart: "no"
+
+  migrate-discovery:
+    build:
+      <<: *build-context
+      dockerfile: services/discovery-svc/Dockerfile
+    command: ["sh", "-c", "/app/.venv/bin/python -m alembic -c alembic/alembic.ini upgrade head"]
+    env_file:
+      - services/discovery-svc/.env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate-profile:
+        condition: service_completed_successfully
+    networks:
+      - colab
+    restart: "no"
+
+  migrate-gateway:
+    build:
+      <<: *build-context
+      dockerfile: services/gateway-svc/Dockerfile
+    command: ["sh", "-c", "/app/.venv/bin/python -m alembic -c migrations/alembic.ini upgrade head || true"]
+    env_file:
+      - services/gateway-svc/.env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - colab
+    restart: "no"
+
+  # ---------------------------------------------------------------------------
+  # Services
+  # ---------------------------------------------------------------------------
+
+  auth-svc:
+    build:
+      <<: *build-context
+      dockerfile: services/auth-svc/Dockerfile
+    <<: *service-defaults
+    env_file:
+      - services/auth-svc/.env.docker
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrate-auth:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  profile-svc:
+    build:
+      <<: *build-context
+      dockerfile: services/profile-svc/Dockerfile
+    <<: *service-defaults
+    env_file:
+      - services/profile-svc/.env.docker
+    ports:
+      - "8002:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrate-profile:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  discovery-svc:
+    build:
+      <<: *build-context
+      dockerfile: services/discovery-svc/Dockerfile
+    <<: *service-defaults
+    env_file:
+      - services/discovery-svc/.env.docker
+    ports:
+      - "8003:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrate-discovery:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  gateway-svc:
+    build:
+      <<: *build-context
+      dockerfile: services/gateway-svc/Dockerfile
+    <<: *service-defaults
+    env_file:
+      - services/gateway-svc/.env.docker
+    ports:
+      - "8000:8000"
+    depends_on:
+      auth-svc:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+# ---------------------------------------------------------------------------
+# Networks + Volumes
+# ---------------------------------------------------------------------------
+
+networks:
+  colab:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  localstack_data:

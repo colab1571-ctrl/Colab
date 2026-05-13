@@ -291,7 +291,7 @@ def upgrade() -> None:
         op.execute(
             sa.text(
                 "INSERT INTO personality_questions (question_key, prompt, options, sort_order) "
-                "VALUES (:key, :prompt, :options, :sort_order) "
+                "VALUES (:key, :prompt, CAST(:options AS JSONB), :sort_order) "
                 "ON CONFLICT DO NOTHING"
             ).bindparams(
                 key=q["question_key"],
