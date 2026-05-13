@@ -2,7 +2,7 @@
 # gateway-svc multi-stage build using uv
 
 # ─── Stage 1: builder ────────────────────────────────────────────────────────
-FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:0.5.4 /uv /uvx /usr/local/bin/
@@ -21,7 +21,7 @@ RUN uv sync --frozen --no-dev --package gateway-svc
 COPY services/gateway-svc/app/ ./services/gateway-svc/app/
 
 # ─── Stage 2: runtime ─────────────────────────────────────────────────────────
-FROM python:3.12-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 # Non-root user
 RUN groupadd --gid 1001 appgroup && \
