@@ -1,0 +1,39 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm build",
+  "outputDirectory": ".next",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://colab-gateway-prod.fly.dev/:path*"
+    }
+  ],
+  "firewall": {
+    "rules": [
+      {
+        "name": "Block non-corporate IPs",
+        "description": "Restrict admin-web to known office/VPN CIDRs. Add your IP ranges below.",
+        "action": "deny",
+        "condition": {
+          "type": "ip_address",
+          "op": "not_in_list",
+          "value": ["0.0.0.0/0"]
+        }
+      }
+    ]
+  }
+}
