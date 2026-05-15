@@ -1,0 +1,92 @@
+name: Deploy to Fly.io
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: fly-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-gateway:
+    name: Deploy gateway-svc
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy gateway-svc
+        run: |
+          flyctl deploy \
+            --app colab-gateway-prod \
+            --dockerfile services/gateway-svc/Dockerfile.fly \
+            --config services/gateway-svc/fly.toml \
+            --build-arg GIT_SHA=${{ github.sha }} \
+            --build-arg IMAGE_TAG=${{ github.ref_name }} \
+            --remote-only \
+            --wait-timeout 300
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  deploy-auth:
+    name: Deploy auth-svc
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy auth-svc
+        run: |
+          flyctl deploy \
+            --app colab-auth-prod \
+            --dockerfile services/auth-svc/Dockerfile \
+            --config services/auth-svc/fly.toml \
+            --build-arg GIT_SHA=${{ github.sha }} \
+            --build-arg IMAGE_TAG=${{ github.ref_name }} \
+            --remote-only \
+            --wait-timeout 300
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  deploy-profile:
+    name: Deploy profile-svc
+    runs-on: ubuntu-latest
+    environment: production
+    needs: [deploy-auth]   # auth must be up before profile (event bus consumer)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy profile-svc
+        run: |
+          flyctl deploy \
+            --app colab-profile-prod \
+            --dockerfile services/profile-svc/Dockerfile \
+            --config services/profile-svc/fly.toml \
+            --build-arg GIT_SHA=${{ github.sha }} \
+            --build-arg IMAGE_TAG=${{ github.ref_name }} \
+            --remote-only \
+            --wait-timeout 300
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  smoke-test:
+    name: Smoke test production
+    runs-on: ubuntu-latest
+    needs: [deploy-gateway, deploy-auth, deploy-profile]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Health checks
+        run: |
+          curl -fsS https://colab-gateway-prod.fly.dev/healthz
+          curl -fsS https://colab-auth-prod.fly.dev/healthz
+          curl -fsS https://colab-profile-prod.fly.dev/healthz
+          echo "All health checks passed."
