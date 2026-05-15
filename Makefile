@@ -1,5 +1,6 @@
 .PHONY: bootstrap lint test openapi openapi-check build deploy clean help \
-        infra-up infra-down migrate services-up demo-smoke
+        infra-up infra-down migrate services-up demo-smoke \
+        deploy-fly deploy-vercel migrate-supabase
 
 # =============================================================================
 # Colab Monorepo Makefile
@@ -87,6 +88,28 @@ services-up: ## Bring up gateway, auth, profile, discovery
 
 demo-smoke: ## Run the signup smoke test against localhost:8000
 	bash scripts/smoke/demo_signup.sh
+
+# ---------------------------------------------------------------------------
+# Stage 3 — PaaS deploy targets
+# ---------------------------------------------------------------------------
+migrate-supabase: ## Run Alembic migrations against Supabase (requires SUPABASE_DB_URL)
+	bash scripts/deploy/migrate-supabase.sh
+
+deploy-fly: ## Deploy gateway, auth, profile to Fly.io (requires flyctl + FLY_API_TOKEN)
+	flyctl deploy --app colab-gateway-prod \
+	  --dockerfile services/gateway-svc/Dockerfile.fly \
+	  --config services/gateway-svc/fly.toml --remote-only
+	flyctl deploy --app colab-auth-prod \
+	  --dockerfile services/auth-svc/Dockerfile \
+	  --config services/auth-svc/fly.toml --remote-only
+	flyctl deploy --app colab-profile-prod \
+	  --dockerfile services/profile-svc/Dockerfile \
+	  --config services/profile-svc/fly.toml --remote-only
+
+deploy-vercel: ## Deploy all web apps to Vercel (requires vercel CLI + VERCEL_TOKEN)
+	cd apps/marketing-web && vercel deploy --prod
+	cd apps/consumer-web  && vercel deploy --prod
+	cd apps/admin-web     && vercel deploy --prod
 
 # ---------------------------------------------------------------------------
 clean: ## Remove all build artifacts

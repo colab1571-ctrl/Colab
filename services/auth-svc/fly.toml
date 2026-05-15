@@ -1,0 +1,53 @@
+# fly.toml — auth-svc (colab-auth-prod)
+# Free tier: shared-cpu-1x, 256MB RAM, min 0 / max 1 machines
+
+app = "colab-auth-prod"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+  [build.args]
+    GIT_SHA = "dev"
+    IMAGE_TAG = "dev"
+
+[env]
+  ENV = "prod"
+  LOG_LEVEL = "info"
+  PORT = "8000"
+  PYTHONUNBUFFERED = "1"
+  JWT_ACCESS_TTL_SECONDS = "900"
+  JWT_REFRESH_TTL_SECONDS = "2592000"
+
+[[services]]
+  internal_port = 8000
+  protocol = "tcp"
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[services.ports]]
+    force_https = true
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [services.concurrency]
+    type = "requests"
+    hard_limit = 50
+    soft_limit = 40
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "15s"
+    method = "GET"
+    path = "/healthz"
+    protocol = "http"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
