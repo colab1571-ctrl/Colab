@@ -37,10 +37,10 @@ jobs:
       DATABASE_URL: postgresql+asyncpg://colab:colab@localhost:5432/colab_test
       REDIS_URL: redis://localhost:6379/1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v7
         with:
           version: "0.5.4"
 
@@ -60,7 +60,7 @@ jobs:
         run: uv run pytest services/hello-svc/tests -v
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         if: always()
         with:
           file: coverage.xml
@@ -69,15 +69,15 @@ jobs:
     name: JS/TS tests (vitest + jest)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: ".nvmrc"
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: "9.15.0"
 
