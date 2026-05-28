@@ -72,3 +72,6 @@ mockup-cache/
 # Allow security documentation that discusses secrets management (not actual secrets)
 !docs/security/secrets-rotation-runbook.md
 .turbo/
+
+# Claude Code task workspace
+.claude/
