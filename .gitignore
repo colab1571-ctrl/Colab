@@ -75,3 +75,4 @@ mockup-cache/
 
 # Claude Code task workspace
 .claude/
+.deploy/

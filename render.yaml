@@ -1,0 +1,73 @@
+# Render Blueprint — Colab Stage 3 PaaS deploy (first slice: gateway + auth + profile)
+# Build context is the monorepo root (Dockerfiles COPY packages/colab_common + services/<svc>).
+# Secrets (sync:false) are entered in the Render Blueprint wizard / dashboard, not committed.
+# Backing services: Supabase Postgres (shared), Upstash Redis (shared), CloudAMQP RabbitMQ (shared).
+
+envVarGroups:
+  - name: colab-shared
+    envVars:
+      - key: ENV
+        value: dev
+      - key: LOG_LEVEL
+        value: INFO
+      # postgresql+asyncpg://postgres.<ref>:<pw>@<pooler-host>:5432/postgres  (Supabase session pooler, IPv4)
+      - key: DATABASE_URL
+        sync: false
+      # rediss://default:<pw>@<name>.upstash.io:6379  (Upstash, single shared keyspace)
+      - key: REDIS_URL
+        sync: false
+      # amqps://<user>:<pw>@<host>/<vhost>  (CloudAMQP Little Lemur)
+      - key: RABBITMQ_URL
+        sync: false
+      # shared service-to-service secret — identical across auth + profile
+      - key: INTERNAL_SERVICE_SECRET
+        sync: false
+
+services:
+  - type: web
+    name: colab-gateway
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: feat/stage3-paas-deploy
+    dockerfilePath: ./services/gateway-svc/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: false
+    envVars:
+      - fromGroup: colab-shared
+      # Set to the live Render URLs after first deploy (https://colab-auth.onrender.com etc.)
+      - key: UPSTREAM_AUTH_URL
+        sync: false
+      - key: UPSTREAM_PROFILE_URL
+        sync: false
+
+  - type: web
+    name: colab-auth
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: feat/stage3-paas-deploy
+    dockerfilePath: ./services/auth-svc/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: false
+    envVars:
+      - fromGroup: colab-shared
+
+  - type: web
+    name: colab-profile
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: feat/stage3-paas-deploy
+    dockerfilePath: ./services/profile-svc/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: false
+    envVars:
+      - fromGroup: colab-shared
+      - key: OPENAI_API_KEY
+        value: sk-local-placeholder
+      - key: EMBEDDING_DIMENSIONS
+        value: "1536"
