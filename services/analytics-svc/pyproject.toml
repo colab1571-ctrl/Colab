@@ -18,7 +18,7 @@ dependencies = [
     "pydantic-settings>=2.6,<3",
     "structlog>=24.1,<25",
     "python-multipart>=0.0.12,<1",
-    "redis[hiredis]>=5.2,<6",
+    "redis[hiredis]>=5.2,<9",
 ]
 
 [build-system]
