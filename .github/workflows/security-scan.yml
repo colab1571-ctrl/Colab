@@ -45,10 +45,10 @@ jobs:
           - meeting-svc
           - gateway-svc
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build image (no push)
         run: |
@@ -57,7 +57,7 @@ jobs:
             services/${{ matrix.service }}/
 
       - name: Run Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: colab/${{ matrix.service }}:${{ github.sha }}
           format: sarif
@@ -70,7 +70,7 @@ jobs:
 
       - name: Upload Trivy SARIF to GitHub Security
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-${{ matrix.service }}.sarif
           category: trivy-${{ matrix.service }}
@@ -85,7 +85,7 @@ jobs:
 
       - name: Upload SBOM artifact
         if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom-${{ matrix.service }}-${{ github.sha }}
           path: sbom-${{ matrix.service }}-${{ github.sha }}.json
@@ -121,7 +121,7 @@ jobs:
           - meeting-svc
           - gateway-svc
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run Snyk Python test
         uses: snyk/actions/python@master
@@ -158,7 +158,7 @@ jobs:
           - apps/admin-web
           - apps/mobile
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run Snyk npm test
         uses: snyk/actions/node@master
@@ -180,7 +180,7 @@ jobs:
     container:
       image: semgrep/semgrep:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run semgrep
         run: |
@@ -202,7 +202,7 @@ jobs:
 
       - name: Upload semgrep SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: semgrep.sarif
           category: semgrep
@@ -237,10 +237,10 @@ jobs:
           - meeting-svc
           - gateway-svc
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -257,7 +257,7 @@ jobs:
 
       - name: Upload bandit SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: bandit-${{ matrix.service }}.sarif
           category: bandit-${{ matrix.service }}
@@ -269,15 +269,15 @@ jobs:
     name: eslint security (TS/RN)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v6
         with:
           version: 9
 
