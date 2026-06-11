@@ -8,6 +8,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./theme": "./src/theme/ThemeProvider.tsx",
+    "./theme.css": "./src/theme/tokens.css",
     "./auth": "./src/auth/AuthProvider.tsx"
   },
   "scripts": {

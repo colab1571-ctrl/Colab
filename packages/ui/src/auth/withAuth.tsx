@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import type { Route } from "next";
 import React, { useEffect } from "react";
 import { useAuth } from "./AuthProvider";
 
 interface WithAuthOptions {
   requiredRole?: string;
-  redirectTo?: string;
+  redirectTo?: Route;
 }
 
 /**
@@ -18,7 +19,7 @@ export function withAuth<P extends Record<string, unknown>>(
   Component: React.ComponentType<P>,
   options: WithAuthOptions = {}
 ): React.ComponentType<P> {
-  const { requiredRole, redirectTo = "/login" } = options;
+  const { requiredRole, redirectTo = "/login" as Route } = options;
 
   function ProtectedPage(props: P): React.ReactElement | null {
     const { user, loading } = useAuth();
@@ -29,7 +30,7 @@ export function withAuth<P extends Record<string, unknown>>(
         void router.replace(redirectTo);
       }
       if (!loading && user && requiredRole && !user.roles.includes(requiredRole)) {
-        void router.replace("/403");
+        void router.replace("/403" as Route);
       }
     }, [loading, user, router]);
 

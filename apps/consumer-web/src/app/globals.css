@@ -1,4 +1,4 @@
-@import "@colab/ui/theme";
+@import "@colab/ui/theme.css";
 
 @tailwind base;
 @tailwind components;
