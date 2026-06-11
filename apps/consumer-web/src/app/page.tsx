@@ -35,7 +35,7 @@ export default function HomePage(): React.ReactElement {
         <div className="flex gap-4 mt-8" role="group" aria-label="Primary actions">
           <Button asChild>
             <a
-              href="/login"
+              href="/signup"
               className="focus-visible:outline-2 focus-visible:outline-offset-2"
             >
               Get started

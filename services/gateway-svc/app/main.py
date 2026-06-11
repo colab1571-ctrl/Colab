@@ -57,6 +57,14 @@ register_handlers(app)
 app.add_middleware(RequestIDMiddleware)
 
 # 2. CORS
+#
+# Explicit allowlist covers the apex + sub-apex production domains and local
+# dev ports. The regex covers every Vercel preview / production URL the three
+# web apps generate (consumer-*.vercel.app, marketing-*.vercel.app,
+# admin-*.vercel.app, plus per-deploy hash slugs). It also covers
+# *.colabclub.net so future subdomain deploys (e.g. staging.colabclub.net)
+# are accepted without code changes. Credentials are enabled so the browser
+# sends and stores the colab-session HttpOnly cookie.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -68,6 +76,7 @@ app.add_middleware(
         "http://localhost:3001",
         "http://localhost:3002",
     ],
+    allow_origin_regex=r"^https://[a-z0-9-]+\.(?:vercel\.app|colabclub\.net)$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

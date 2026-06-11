@@ -25,6 +25,24 @@ from colab_common.events import enqueue_outbox
 router = APIRouter(prefix="/auth", tags=["sessions"])
 
 
+@router.get("/me")
+async def get_me(user: AuthUser = Depends(require_user)) -> dict:
+    """
+    Return the currently authenticated user.
+
+    Used by the consumer/admin web AuthProvider to bootstrap session state on
+    page load. Returns 401 if no valid token is present (handled by
+    require_user). Returns the same shape as the JWT-issued user payload so
+    the frontend can mirror its AuthUser type.
+    """
+    return {
+        "userId": user.user_id,
+        "email": user.email,
+        "roles": user.roles,
+        "tier": user.tier,
+    }
+
+
 @router.get("/sessions", response_model=SessionListResponse)
 async def list_sessions(
     user: AuthUser = Depends(require_user),

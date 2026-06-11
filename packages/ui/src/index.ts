@@ -33,7 +33,7 @@ export { ThemeProvider, useTheme } from "./theme/ThemeProvider";
 // Auth
 export { AuthProvider, useAuth } from "./auth/AuthProvider";
 export { withAuth } from "./auth/withAuth";
-export type { AuthUser } from "./auth/AuthProvider";
+export type { AuthUser, SignupBody, LoginBody } from "./auth/AuthProvider";
 
 // Icons
 export * from "./icons";
