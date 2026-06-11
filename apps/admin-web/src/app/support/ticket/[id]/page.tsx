@@ -9,7 +9,7 @@ import { getTicketDetail, replyToTicket } from "@/lib/admin-api";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 
-type Props = { params: { id: string } };
+type Props = { params: Promise<{ id: string }> };
 
 async function TicketDetail({ id, userId, roles }: { id: string; userId: string; roles: string[] }): Promise<React.ReactElement> {
   const ticket = await getTicketDetail(id, userId, roles) as Record<string, unknown>;
@@ -119,6 +119,7 @@ async function TicketDetail({ id, userId, roles }: { id: string; userId: string;
 
 export default async function TicketDetailPage({ params }: Props): Promise<React.ReactElement> {
   const session = await requireRole(["support", "super_admin"]);
+  const { id } = await params;
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-6">
@@ -127,7 +128,7 @@ export default async function TicketDetailPage({ params }: Props): Promise<React
         </Link>
       </div>
       <Suspense fallback={<div className="animate-pulse h-96 bg-neutral-100 rounded" />}>
-        <TicketDetail id={params.id} userId={session.userId} roles={session.roles} />
+        <TicketDetail id={id} userId={session.userId} roles={session.roles} />
       </Suspense>
     </div>
   );

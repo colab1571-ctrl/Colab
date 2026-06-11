@@ -19,7 +19,7 @@ const ACTION_TYPES = [
   "dismiss",
 ] as const;
 
-type Props = { params: { id: string } };
+type Props = { params: Promise<{ id: string }> };
 
 async function CaseDetail({ id, userId, roles }: { id: string; userId: string; roles: string[] }): Promise<React.ReactElement> {
   const detail = await getCaseDetail(id, userId, roles) as Record<string, unknown>;
@@ -119,14 +119,15 @@ async function AuditHistory({ id, userId, roles }: { id: string; userId: string;
 
 export default async function CaseDetailPage({ params }: Props): Promise<React.ReactElement> {
   const session = await requireRole(["mod", "super_admin"]);
+  const { id } = await params;
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Case {params.id.slice(0, 8)}</h1>
+      <h1 className="text-2xl font-bold mb-6">Case {id.slice(0, 8)}</h1>
       <Suspense fallback={<div className="animate-pulse h-64 bg-neutral-100 rounded" />}>
-        <CaseDetail id={params.id} userId={session.userId} roles={session.roles} />
+        <CaseDetail id={id} userId={session.userId} roles={session.roles} />
       </Suspense>
       <Suspense fallback={<div className="animate-pulse h-32 bg-neutral-100 rounded mt-6" />}>
-        <AuditHistory id={params.id} userId={session.userId} roles={session.roles} />
+        <AuditHistory id={id} userId={session.userId} roles={session.roles} />
       </Suspense>
     </div>
   );

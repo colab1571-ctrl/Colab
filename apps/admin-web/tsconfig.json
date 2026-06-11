@@ -2,19 +2,43 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "jsx": "preserve",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "composite": false,
     "incremental": false,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@colab/ui": ["../../packages/ui/src/index.ts"],
-      "@colab/api-types/*": ["../../packages/api-types/*"]
-    }
+      "@/*": [
+        "./src/*"
+      ],
+      "@colab/ui": [
+        "../../packages/ui/src/index.ts"
+      ],
+      "@colab/api-types/*": [
+        "../../packages/api-types/*"
+      ]
+    },
+    "allowJs": true,
+    "noEmit": true,
+    "isolatedModules": true
   },
-  "include": ["src", "next.config.ts", "middleware.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "middleware.ts",
+    "next.config.ts",
+    "src",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

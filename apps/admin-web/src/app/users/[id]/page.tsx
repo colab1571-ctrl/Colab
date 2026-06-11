@@ -7,7 +7,10 @@ import { Suspense } from "react";
 import { requireRole } from "@/lib/auth";
 import { getUser360 } from "@/lib/admin-api";
 
-type Props = { params: { id: string } };
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ reveal?: string }>;
+};
 
 function Panel({ title, data }: { title: string; data: unknown }): React.ReactElement {
   return (
@@ -65,20 +68,21 @@ async function User360View({
 export default async function User360Page({
   params,
   searchParams,
-}: Props & { searchParams: { reveal?: string } }): Promise<React.ReactElement> {
+}: Props): Promise<React.ReactElement> {
   const session = await requireRole(["mod", "support", "billing_admin", "super_admin"]);
-  const reveal = searchParams.reveal === "true";
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const reveal = sp.reveal === "true";
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">User 360°</h1>
-          <p className="text-sm text-neutral-500 font-mono">{params.id}</p>
+          <p className="text-sm text-neutral-500 font-mono">{id}</p>
         </div>
         {!reveal && (
           <a
-            href={`/users/${params.id}?reveal=true`}
+            href={`/users/${id}?reveal=true`}
             className="text-sm text-amber-600 border border-amber-300 px-3 py-1.5 rounded hover:bg-amber-50 transition"
           >
             Reveal PII (audit-logged)
@@ -96,7 +100,7 @@ export default async function User360Page({
         }
       >
         <User360View
-          id={params.id}
+          id={id}
           userId={session.userId}
           roles={session.roles}
           reveal={reveal}

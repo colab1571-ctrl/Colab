@@ -19,21 +19,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://colab-gateway-prod.fly.dev/:path*"
+      "destination": "https://colab-gateway-ogv8.onrender.com/:path*"
     }
-  ],
-  "firewall": {
-    "rules": [
-      {
-        "name": "Block non-corporate IPs",
-        "description": "Restrict admin-web to known office/VPN CIDRs. Add your IP ranges below.",
-        "action": "deny",
-        "condition": {
-          "type": "ip_address",
-          "op": "not_in_list",
-          "value": ["0.0.0.0/0"]
-        }
-      }
-    ]
-  }
+  ]
 }
