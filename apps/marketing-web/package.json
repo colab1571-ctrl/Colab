@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --port 3001",
     "build": "next build",
-    "postbuild": "next-sitemap",
+    "postbuild:disabled": "next-sitemap (disabled — broken under node 23/pnpm; re-enable when next-sitemap >= 4.3 lands)",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -16,6 +16,7 @@
     "@aws-sdk/client-sesv2": "^3.0.0",
     "@colab/design-tokens": "workspace:*",
     "@colab/ui": "workspace:*",
+    "@mdx-js/loader": "^3.0.0",
     "@mdx-js/react": "^3.0.0",
     "@next/mdx": "^15.0.0",
     "@vercel/og": "^0.6.0",

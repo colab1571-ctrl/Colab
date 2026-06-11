@@ -12,20 +12,14 @@ const withMDX = createMDX({
 });
 
 const nextConfig: NextConfig = {
-  // Static export — route handlers (waitlist, cookie-consent, ingest) are excluded
-  // and deployed as Lambda@Edge / Fargate behind the same CloudFront distribution.
-  output: "export",
-  // Allow .mdx page files
+  // Deployed on Vercel — SSR + route handlers (waitlist, cookie-consent, ingest)
+  // run as Vercel serverless functions. (Original plan was S3+CloudFront with
+  // separate Lambda@Edge; pivoted to Vercel for Stage 3 PaaS deploy.)
   pageExtensions: ["ts", "tsx", "md", "mdx"],
   transpilePackages: ["@colab/ui", "@colab/design-tokens"],
-  images: {
-    // Required for static export; images are pre-optimised via sharp at build time
-    unoptimized: true,
-  },
-  // Env vars forwarded at build time (also available via NEXT_PUBLIC_ prefix at runtime)
   env: {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? "https://colabclub.net",
-    NEXT_PUBLIC_BRAND_NAME: process.env.NEXT_PUBLIC_BRAND_NAME ?? "<BRAND_NAME>",
+    NEXT_PUBLIC_BRAND_NAME: process.env.NEXT_PUBLIC_BRAND_NAME ?? "Colab",
   },
 };
 

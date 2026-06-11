@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useId } from "react";
-import type { FaqItem } from "../app/faq/page";
+import type { FaqItem } from "../app/faq/data";
 
 /**
  * Client-side text filter for FAQ items.

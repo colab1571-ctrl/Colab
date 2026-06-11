@@ -2,19 +2,43 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "jsx": "preserve",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "composite": false,
     "incremental": false,
     "baseUrl": ".",
     "noUncheckedIndexedAccess": false,
     "paths": {
-      "@/*": ["./src/*"],
-      "@colab/ui": ["../../packages/ui/src/index.ts"]
-    }
+      "@/*": [
+        "./src/*"
+      ],
+      "@colab/ui": [
+        "../../packages/ui/src/index.ts"
+      ]
+    },
+    "allowJs": true,
+    "noEmit": true,
+    "isolatedModules": true
   },
-  "include": ["src", "content", "next.config.ts", "next-sitemap.config.js", "scripts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "content",
+    "next-sitemap.config.js",
+    "next.config.ts",
+    "scripts",
+    "src",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
