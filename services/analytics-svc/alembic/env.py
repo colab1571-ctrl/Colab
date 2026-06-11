@@ -27,12 +27,13 @@ DATABASE_URL = os.environ.get(
 
 def run_migrations_offline() -> None:
     context.configure(
-        url=DATABASE_URL.replace("+asyncpg, version_table="alembic_version_analytics"", ""),
+        url=DATABASE_URL.replace("+asyncpg", ""),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         include_schemas=True,
         version_table_schema="analytics",
+        version_table="alembic_version_analytics",
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -44,6 +45,7 @@ def do_run_migrations(connection: Connection) -> None:
         target_metadata=target_metadata,
         include_schemas=True,
         version_table_schema="analytics",
+        version_table="alembic_version_analytics",
     )
     with context.begin_transaction():
         context.run_migrations()

@@ -28,7 +28,7 @@ DATABASE_URL = os.environ.get(
 
 def run_migrations_offline() -> None:
     context.configure(
-        url=DATABASE_URL.replace("+asyncpg, version_table="alembic_version_moderation"", ""),
+        url=DATABASE_URL.replace("+asyncpg", ""),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},

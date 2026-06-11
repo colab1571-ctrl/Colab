@@ -461,3 +461,29 @@ The codebase is **pre-alpha for a public consumer launch tomorrow**. Recommend h
 - Push notifications: `lib/push.ts` is a stub; no APNs/FCM device registration code; no Expo Push token capture.
 - Notification preferences UI: not in mobile nav, no consumer-web settings page beyond the stub line.
 - Celery workers: notification-svc digest, collab-svc auto-archive, moderation-svc dup-detection — no Celery container in docker-compose; no Fly machine config; no Render worker.
+
+---
+
+## Migration follow-ups (added 2026-06-11)
+
+After per-service `version_table` patch + schema pre-creation, **9 of 19 services migrated successfully** to Supabase:
+- auth, profile (stamped — were already at head)
+- chat, collab, discovery, ai, meeting (full DDL applied; schemas live)
+- admin, analytics (full DDL applied; schemas live)
+
+**10 services NOT yet migrated due to real migration-file bugs** (each needs an individual fix; track as P0 follow-ups):
+
+| Service | Error | Likely fix |
+|---|---|---|
+| matching-svc | `invalid input syntax for type json` on 0001 | Migration's `server_default` for a JSON column passes a bad literal — wrap in `text("'[]'::jsonb")` instead of raw `"[]"` |
+| billing-svc | `invalid input syntax for type json` on 0001 | Same JSON server_default issue |
+| invite-svc | `column "published" does not exist` | CHECK constraint or trigger references a column not yet declared in the same migration. Reorder or drop the constraint. |
+| moderation-svc | `column cannot have more than 2000 dimensions for ivfflat index` | Vector column is >2000 dims; pgvector IVFFlat caps at 2000. Switch to `USING hnsw` (caps at 16k) or reduce embedding dim. |
+| support-svc | Same 2000-dim ivfflat issue | Same fix: switch to hnsw |
+| notification-svc | `type "notification_type_enum" already exists` | Leftover from earlier partial run; drop in correct schema first (`DROP TYPE notification.notification_type_enum CASCADE;`) then re-run |
+| identity-svc | `Can't find Python file env.py` from `script_location=.` | alembic.ini's `script_location` should point to versions dir, not `.` |
+| gateway-svc | `No 'script_location' key found in configuration` | migrations/alembic.ini missing the `script_location` setting |
+| media-svc | (intentional — by design has no migrations, writes to chat schema) | None |
+| geo-svc | (intentional — stateless Mapbox proxy) | None |
+
+Schemas currently live in Supabase: admin, ai, analytics, chat, collab, discovery, meeting (7). 
