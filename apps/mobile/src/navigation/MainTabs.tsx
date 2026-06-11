@@ -2,12 +2,17 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 import { Text } from "react-native";
 import { HomeScreen } from "../screens/home/HomeScreen";
-import { PlaceholderScreen } from "../screens/PlaceholderScreen";
 import { FeedScreen } from "../screens/discovery/FeedScreen";
+import { ChatsStack } from "./ChatsStack";
+import { InboxStack } from "./InboxStack";
+import { CollabsStack } from "./CollabsStack";
+import { MeStack } from "./MeStack";
 
 export type MainTabsParamList = {
   Home: undefined;
   Discover: undefined;
+  Inbox: undefined;
+  Collabs: undefined;
   Chats: undefined;
   Me: undefined;
 };
@@ -32,26 +37,12 @@ export function MainTabs(): React.ReactElement {
         tabBarInactiveTintColor: "#A0A0A0",
       }}
     >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ tabBarLabel: "Home" }}
-      />
-      <Tab.Screen
-        name="Discover"
-        component={FeedScreen}
-        options={{ tabBarLabel: "Discover" }}
-      />
-      <Tab.Screen
-        name="Chats"
-        component={PlaceholderScreen}
-        options={{ tabBarLabel: "Chats" }}
-      />
-      <Tab.Screen
-        name="Me"
-        component={PlaceholderScreen}
-        options={{ tabBarLabel: "Me" }}
-      />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: "Home" }} />
+      <Tab.Screen name="Discover" component={FeedScreen} options={{ tabBarLabel: "Discover" }} />
+      <Tab.Screen name="Inbox" component={InboxStack} options={{ tabBarLabel: "Inbox" }} />
+      <Tab.Screen name="Collabs" component={CollabsStack} options={{ tabBarLabel: "Collabs" }} />
+      <Tab.Screen name="Chats" component={ChatsStack} options={{ tabBarLabel: "Chats" }} />
+      <Tab.Screen name="Me" component={MeStack} options={{ tabBarLabel: "Me" }} />
     </Tab.Navigator>
   );
 }
