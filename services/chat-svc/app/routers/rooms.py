@@ -21,6 +21,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from pydantic import BaseModel, Field
+
 from app.db import get_db
 from app.models import ChatMessage, ChatMessageRevision, ChatReadReceipt, ChatRoom
 from app.schemas import (
@@ -37,6 +39,24 @@ from app.schemas import (
 )
 from app.uuidv7 import generate_uuidv7
 
+
+# ---------------------------------------------------------------------------
+# Internal endpoint request bodies
+# ---------------------------------------------------------------------------
+
+
+class InternalPostMessageBody(BaseModel):
+    """Body for POST /internal/rooms/{room_id}/messages.
+
+    Used by ai-orchestrator-svc and other internal services to post
+    AI-generated / system messages into a chat room.
+    """
+
+    sender_user_id: uuid.UUID
+    body: str = Field(..., max_length=4000)
+    content_type: str = Field(default="text")  # 'text' | 'system_event'
+    metadata: dict[str, Any] | None = None
+
 router = APIRouter(prefix="/chat", tags=["chat"])
 internal_router = APIRouter(prefix="/internal", tags=["internal"], include_in_schema=False)
 
@@ -46,6 +66,24 @@ def _require_internal(request: Request) -> None:
     service = request.headers.get("X-Internal-Service", "")
     if not service and os.environ.get("ENV", "local") not in ("local", "dev"):
         raise HTTPException(status_code=403, detail="Internal endpoint")
+
+
+def _require_internal_secret(request: Request) -> None:
+    """Validate the internal-service-secret header against env config.
+
+    Used by service-to-service calls (e.g. ai-orchestrator-svc, collab-svc)
+    where there is no user JWT — the caller must present the shared secret.
+    Rejects with 401 if the secret is missing or does not match.
+    """
+    import os
+    expected = os.environ.get("INTERNAL_SERVICE_SECRET", "")
+    presented = (
+        request.headers.get("X-Internal-Service-Secret")
+        or request.headers.get("internal-service-secret")
+        or ""
+    )
+    if not expected or not presented or presented != expected:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 def _get_profile_id(request: Request) -> uuid.UUID:
@@ -517,3 +555,122 @@ async def audit_messages(
         })
 
     return {"room_id": str(room_id), "messages": result_msgs}
+
+
+# ---------------------------------------------------------------------------
+# POST /internal/rooms/{room_id}/messages
+#   Called by ai-orchestrator-svc to post AI-generated / system messages
+#   into a chat room. Auth via shared INTERNAL_SERVICE_SECRET.
+# ---------------------------------------------------------------------------
+
+
+@internal_router.post("/rooms/{room_id}/messages", status_code=201)
+async def internal_post_message(
+    room_id: uuid.UUID,
+    body: InternalPostMessageBody,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Post a message as a system / AI user into the given room.
+
+    Skips user-facing moderation and rate limits (caller is trusted).
+    Broadcasts over the WS pipeline if the app has a connection manager /
+    presence channel available.
+    """
+    _require_internal_secret(request)
+
+    # message_type must be one of the values in the MessageTypeEnum.
+    # 'text' and 'system' are valid; 'system_event' is mapped to 'system'.
+    requested = (body.content_type or "text").lower()
+    if requested in ("text",):
+        msg_type = "text"
+    elif requested in ("system", "system_event"):
+        msg_type = "system"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid content_type")
+
+    msg = ChatMessage(
+        id=generate_uuidv7(),
+        room_id=room_id,
+        sender_profile_id=body.sender_user_id,
+        type=msg_type,
+        body=body.body,
+        moderation_score=0.0,
+        moderation_status="allowed",
+        created_at=datetime.now(tz=timezone.utc),
+    )
+    db.add(msg)
+    await db.commit()
+    await db.refresh(msg)
+
+    out = ChatMessageOut(
+        id=msg.id,
+        room_id=msg.room_id,
+        sender_profile_id=msg.sender_profile_id,
+        type=msg.type,
+        body=msg.body,
+        moderation_status=msg.moderation_status,
+        created_at=msg.created_at,
+    )
+
+    # Best-effort broadcast over the existing WS fanout. Failures are
+    # non-fatal — the message is already persisted and will be served
+    # via /chat/rooms/{room_id}/messages on next fetch.
+    try:
+        from app.schemas import ws_message
+        envelope = ws_message(out)
+        app_state = request.app.state
+        presence = getattr(app_state, "presence", None)
+        conn_mgr = getattr(app_state, "conn_mgr", None)
+        if presence is not None:
+            await presence.publish(room_id, envelope)
+        if conn_mgr is not None:
+            await conn_mgr.local_broadcast(room_id, envelope)
+    except Exception:
+        import logging
+        logging.getLogger(__name__).debug(
+            "internal_post_message: WS broadcast skipped", exc_info=True
+        )
+
+    return {
+        "id": str(out.id),
+        "room_id": str(out.room_id),
+        "sender_user_id": str(out.sender_profile_id),
+        "body": out.body,
+        "content_type": (
+            "system_event" if msg_type == "system" else "text"
+        ),
+        "created_at": out.created_at.isoformat(),
+    }
+
+
+# ---------------------------------------------------------------------------
+# GET /internal/rooms/by-collab/{collab_id}
+#   Called by collab-svc to look up the chat room attached to a collab.
+# ---------------------------------------------------------------------------
+
+
+@internal_router.get("/rooms/by-collab/{collab_id}")
+async def internal_room_by_collab(
+    collab_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Resolve the single chat room for a collaboration."""
+    _require_internal_secret(request)
+
+    result = await db.execute(
+        select(ChatRoom).where(ChatRoom.collaboration_id == collab_id)
+    )
+    room = result.scalar_one_or_none()
+    if room is None:
+        raise HTTPException(
+            status_code=404, detail={"error": "no_room_for_collab"}
+        )
+
+    return {
+        "id": str(room.id),
+        "collab_id": str(room.collaboration_id),
+        "participants": [str(pid) for pid in (room.participant_ids or [])],
+        "created_at": room.created_at.isoformat() if room.created_at else None,
+    }

@@ -54,13 +54,16 @@ async def create_collaboration(
     least = min(profile_id_a, profile_id_b)
     greatest = max(profile_id_a, profile_id_b)
 
+    # NOTE: `least_participant` and `greatest_participant` are GENERATED ALWAYS
+    # STORED columns (see alembic 0001). Postgres will reject any INSERT that
+    # supplies a value for them, so we let the DB compute them from
+    # LEAST/GREATEST(profile_id_a, profile_id_b). `least`/`greatest` are still
+    # used below to look up the existing row on conflict.
     stmt = (
         pg_insert(Collaboration)
         .values(
             profile_id_a=profile_id_a,
             profile_id_b=profile_id_b,
-            least_participant=least,
-            greatest_participant=greatest,
             status="still_deciding",
         )
         .on_conflict_do_nothing(constraint="collaboration_participants_unique")

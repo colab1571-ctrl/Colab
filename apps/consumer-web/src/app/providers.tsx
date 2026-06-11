@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, ThemeProvider } from "@colab/ui";
 import React, { useState } from "react";
+import { AppShell } from "../components/AppShell";
 
 export function Providers({ children }: { children: React.ReactNode }): React.ReactElement {
   const [queryClient] = useState(
@@ -17,7 +18,9 @@ export function Providers({ children }: { children: React.ReactNode }): React.Re
   return (
     <ThemeProvider defaultTheme="system">
       <AuthProvider apiBaseUrl={process.env.NEXT_PUBLIC_API_BASE_URL ?? ""}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          <AppShell>{children}</AppShell>
+        </QueryClientProvider>
       </AuthProvider>
     </ThemeProvider>
   );
