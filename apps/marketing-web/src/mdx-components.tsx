@@ -2,19 +2,24 @@
  * Required by @next/mdx — this file defines the components available
  * to all MDX files in the project.
  * See: https://nextjs.org/docs/app/building-your-application/configuring/mdx#add-the-mdx-components-file
+ *
+ * NOTE on the `ref: _` discards: @next/mdx's prop types include the legacy
+ * React `ref` (string-allowed `LegacyRef`). React 19's HTML element types
+ * only accept the new `Ref` shape, so spreading the raw props would fail
+ * type-check. Pulling `ref` out of the spread side-steps the conflict
+ * without losing any other prop.
  */
 
 import type { MDXComponents } from "mdx/types";
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
-    // Re-use default components (h1..h6, p, a, etc.) with any customisations
-    h1: ({ children, ...props }) => (
+    h1: ({ children, ref: _h1ref, ...props }) => (
       <h1 className="text-3xl font-bold text-neutral-900 mb-6" {...props}>
         {children}
       </h1>
     ),
-    h2: ({ children, ...props }) => (
+    h2: ({ children, ref: _h2ref, ...props }) => (
       <h2
         className="text-2xl font-bold text-neutral-900 mt-10 mb-4 scroll-mt-24"
         {...props}
@@ -22,7 +27,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </h2>
     ),
-    h3: ({ children, ...props }) => (
+    h3: ({ children, ref: _h3ref, ...props }) => (
       <h3
         className="text-xl font-semibold text-neutral-900 mt-8 mb-3 scroll-mt-24"
         {...props}
@@ -30,12 +35,12 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </h3>
     ),
-    p: ({ children, ...props }) => (
+    p: ({ children, ref: _pref, ...props }) => (
       <p className="text-neutral-600 leading-relaxed mb-4" {...props}>
         {children}
       </p>
     ),
-    a: ({ children, href, ...props }) => (
+    a: ({ children, href, ref: _aref, ...props }) => (
       <a
         href={href}
         className="text-[var(--color-brand-primary)] underline underline-offset-2 hover:opacity-80 transition-opacity"
@@ -47,7 +52,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </a>
     ),
-    ul: ({ children, ...props }) => (
+    ul: ({ children, ref: _ulref, ...props }) => (
       <ul
         className="list-disc list-inside space-y-2 mb-4 text-neutral-600"
         {...props}
@@ -55,7 +60,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </ul>
     ),
-    ol: ({ children, ...props }) => (
+    ol: ({ children, ref: _olref, ...props }) => (
       <ol
         className="list-decimal list-inside space-y-2 mb-4 text-neutral-600"
         {...props}
@@ -63,12 +68,12 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </ol>
     ),
-    li: ({ children, ...props }) => (
+    li: ({ children, ref: _liref, ...props }) => (
       <li className="leading-relaxed" {...props}>
         {children}
       </li>
     ),
-    blockquote: ({ children, ...props }) => (
+    blockquote: ({ children, ref: _bqref, ...props }) => (
       <blockquote
         className="border-l-4 border-[var(--color-brand-primary)] pl-4 italic text-neutral-500 my-4"
         {...props}
@@ -76,14 +81,14 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </blockquote>
     ),
-    table: ({ children, ...props }) => (
+    table: ({ children, ref: _tref, ...props }) => (
       <div className="overflow-x-auto my-6">
         <table className="w-full text-sm border-collapse" {...props}>
           {children}
         </table>
       </div>
     ),
-    th: ({ children, ...props }) => (
+    th: ({ children, ref: _thref, ...props }) => (
       <th
         className="bg-neutral-50 text-left px-4 py-2 font-semibold text-neutral-700 border border-neutral-200"
         {...props}
@@ -91,7 +96,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </th>
     ),
-    td: ({ children, ...props }) => (
+    td: ({ children, ref: _tdref, ...props }) => (
       <td
         className="px-4 py-2 text-neutral-600 border border-neutral-200"
         {...props}
@@ -99,10 +104,10 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </td>
     ),
-    hr: (props) => (
+    hr: ({ ref: _hrref, ...props }) => (
       <hr className="border-neutral-200 my-8" {...props} />
     ),
-    code: ({ children, ...props }) => (
+    code: ({ children, ref: _coderef, ...props }) => (
       <code
         className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm font-mono"
         {...props}
@@ -110,7 +115,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </code>
     ),
-    pre: ({ children, ...props }) => (
+    pre: ({ children, ref: _preref, ...props }) => (
       <pre
         className="bg-neutral-900 text-neutral-100 rounded-xl p-6 overflow-x-auto my-6 text-sm"
         {...props}

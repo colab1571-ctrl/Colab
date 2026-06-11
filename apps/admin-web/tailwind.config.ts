@@ -1,10 +1,8 @@
 import type { Config } from "tailwindcss";
-import typographyPlugin from "@tailwindcss/typography";
 
 const config: Config = {
   content: [
     "./src/**/*.{ts,tsx,mdx}",
-    "./content/**/*.{md,mdx}",
     "../../packages/ui/src/**/*.{ts,tsx}",
   ],
   theme: {
@@ -31,18 +29,13 @@ const config: Config = {
           DEFAULT: "var(--color-destructive)",
           foreground: "var(--color-destructive-foreground)",
         },
-        brand: {
-          primary: "var(--color-brand-primary)",
-          secondary: "var(--color-brand-secondary)",
-          accent: "var(--color-brand-accent)",
-        },
         "brand-primary": "var(--color-brand-primary)",
         "brand-secondary": "var(--color-brand-secondary)",
         "brand-accent": "var(--color-brand-accent)",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "var(--font-sans)", "system-ui", "-apple-system", "sans-serif"],
-        mono: ["var(--font-mono)", "Menlo", "monospace"],
+        sans: ["var(--font-sans)"],
+        mono: ["var(--font-mono)"],
       },
       borderRadius: {
         sm: "var(--radius-sm)",
@@ -50,30 +43,9 @@ const config: Config = {
         lg: "var(--radius-lg)",
         xl: "var(--radius-xl)",
       },
-      typography: {
-        neutral: {
-          css: {
-            "--tw-prose-body": "#404040",
-            "--tw-prose-headings": "#171717",
-            "--tw-prose-links": "var(--color-brand-primary)",
-            "--tw-prose-bold": "#171717",
-            "--tw-prose-counters": "#737373",
-            "--tw-prose-bullets": "#d4d4d4",
-            "--tw-prose-hr": "#e5e5e5",
-            "--tw-prose-quotes": "#171717",
-            "--tw-prose-quote-borders": "var(--color-brand-primary)",
-            "--tw-prose-captions": "#737373",
-            "--tw-prose-code": "#171717",
-            "--tw-prose-pre-code": "#e5e5e5",
-            "--tw-prose-pre-bg": "#171717",
-            "--tw-prose-th-borders": "#d4d4d4",
-            "--tw-prose-td-borders": "#e5e5e5",
-          },
-        },
-      },
     },
   },
-  plugins: [typographyPlugin],
+  plugins: [],
 };
 
 export default config;

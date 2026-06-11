@@ -1,10 +1,10 @@
+@import "@colab/ui/theme.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --color-brand-primary: #5B5BD6;
-  --color-brand-secondary: #FFB454;
   --color-brand-primary-hover: #4f4ec0;
   --font-inter: "Inter", system-ui, -apple-system, sans-serif;
 }
