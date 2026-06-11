@@ -32,7 +32,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        include_schemas=True,
+        include_schemas=True, version_table="alembic_version_ai_orchestrator",
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -42,7 +42,7 @@ def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
-        include_schemas=True,
+        include_schemas=True, version_table="alembic_version_ai_orchestrator",
     )
     with context.begin_transaction():
         context.run_migrations()

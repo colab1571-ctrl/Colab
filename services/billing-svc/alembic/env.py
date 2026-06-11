@@ -55,7 +55,7 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: object) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)  # type: ignore[arg-type]
+    context.configure(connection=connection, target_metadata=target_metadata, version_table="alembic_version_billing")  # type: ignore[arg-type]
     with context.begin_transaction():
         context.run_migrations()
 
