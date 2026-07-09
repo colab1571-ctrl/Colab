@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:0.5.4 /uv /uvx /usr/local/bin/
 
@@ -15,7 +15,7 @@ COPY services/auth-svc/app/ ./services/auth-svc/app/
 COPY services/auth-svc/alembic/ ./services/auth-svc/alembic/
 COPY services/auth-svc/templates/ ./services/auth-svc/templates/
 
-FROM python:3.12-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 RUN groupadd --gid 1001 appgroup && \
     useradd --uid 1001 --gid appgroup --no-create-home appuser
