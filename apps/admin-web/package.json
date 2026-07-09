@@ -15,7 +15,7 @@
     "@colab/i18n": "workspace:*",
     "@colab/ui": "workspace:*",
     "@sentry/nextjs": "^8.49.0",
-    "i18next": "^23.16.8",
+    "i18next": "^26.1.0",
     "react-i18next": "^15.2.0",
     "i18next-icu": "^2.3.0",
     "i18next-http-backend": "^2.7.0",
