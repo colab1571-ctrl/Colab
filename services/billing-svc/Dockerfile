@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:0.5.4 /uv /uvx /usr/local/bin/
 
@@ -14,7 +14,7 @@ RUN uv sync --frozen --no-dev --package billing-svc
 COPY services/billing-svc/app/ ./services/billing-svc/app/
 COPY services/billing-svc/alembic/ ./services/billing-svc/alembic/
 
-FROM python:3.12-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 RUN groupadd --gid 1001 appgroup && \
     useradd --uid 1001 --gid appgroup --no-create-home appuser
