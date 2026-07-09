@@ -22,7 +22,7 @@ dependencies = [
     "boto3>=1.35,<2",
     "google-auth>=2.35,<3",
     "google-auth-httplib2>=0.2,<1",
-    "icalendar>=6.0,<7",
+    "icalendar>=6.0,<8",
     "anyio>=4.6,<5",
     "uvloop>=0.21,<1",
 ]
