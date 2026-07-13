@@ -21,7 +21,7 @@ dependencies = [
     "qrcode>=7.4,<8",
     "passlib[bcrypt]>=1.7,<2",
     "redis[hiredis]>=5.2,<6",
-    "aio-pika>=9.4,<10",
+    "aio-pika>=9.4,<11",
 ]
 
 [build-system]
